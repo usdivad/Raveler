@@ -40,20 +40,408 @@ for the documentation about the plugin xml format
       </PlatformSupport>
     </PluginInfo>
     <Properties>
-      <!-- Add your property definitions here -->
-      <Property Name="Placeholder" Type="Real32" SupportRTPCType="Exclusive" DisplayName="Placeholder">
-        <UserInterface Step="0.1" Fine="0.001" Decimals="3" UIMax="10" />
-        <DefaultValue>0.0</DefaultValue>
+
+      <!-- Input -->
+
+      <Property Name="InputGain" Type="Real32" SupportRTPCType="Exclusive" DisplayName="Input Gain" DisplayGroup="Input">
+        <UserInterface Step="0.1" Fine="0.001" Decimals="3" />
+        <DefaultValue>0</DefaultValue>
         <AudioEnginePropertyID>0</AudioEnginePropertyID>
         <Restrictions>
           <ValueRestriction>
             <Range Type="Real32">
-              <Min>0.001</Min>
-              <Max>1000</Max>
+              <Min>-70</Min>
+              <Max>12</Max>
             </Range>
           </ValueRestriction>
         </Restrictions>
       </Property>
+
+      <Property Name="ChannelMode" Type="Uint32" SupportRTPCType="Exclusive" DisplayName="Channel Mode" DisplayGroup="Input">
+        <DefaultValue>0</DefaultValue>
+        <AudioEnginePropertyID>1</AudioEnginePropertyID>
+        <Restrictions>
+          <ValueRestriction>
+            <Enumeration Type="Uint32">
+              <Value DisplayName="L">0</Value>
+              <Value DisplayName="R">1</Value>
+              <Value DisplayName="L+R">2</Value>
+            </Enumeration>
+          </ValueRestriction>
+        </Restrictions>
+      </Property>
+
+      <!-- Compressor -->
+
+      <Property Name="InputThreshold" Type="Real32" SupportRTPCType="Exclusive" DisplayName="Input Threshold" DisplayGroup="Compressor">
+        <UserInterface Step="0.1" Fine="0.001" Decimals="3" />
+        <DefaultValue>0</DefaultValue>
+        <AudioEnginePropertyID>2</AudioEnginePropertyID>
+        <Restrictions>
+          <ValueRestriction>
+            <Range Type="Real32">
+              <Min>-60</Min>
+              <Max>0</Max>
+            </Range>
+          </ValueRestriction>
+        </Restrictions>
+      </Property>
+
+
+      <Property Name="InputRatio" Type="Real32" SupportRTPCType="Exclusive" DisplayName="Input Ratio" DisplayGroup="Compressor">
+        <UserInterface Step="0.1" Fine="0.001" Decimals="3" />
+        <DefaultValue>1</DefaultValue>
+        <AudioEnginePropertyID>3</AudioEnginePropertyID>
+        <Restrictions>
+          <ValueRestriction>
+            <Range Type="Real32">
+              <Min>1</Min>
+              <Max>10</Max>
+            </Range>
+          </ValueRestriction>
+        </Restrictions>
+      </Property>
+
+      <!-- Model -->
+
+      <Property Name="LatentJitter" Type="Real32" SupportRTPCType="Exclusive" DisplayName="Latent Jitter" DisplayGroup="Model">
+        <UserInterface Step="0.1" Fine="0.001" Decimals="3" />
+        <DefaultValue>0</DefaultValue>
+        <AudioEnginePropertyID>4</AudioEnginePropertyID>
+        <Restrictions>
+          <ValueRestriction>
+            <Range Type="Real32">
+              <Min>0</Min>
+              <Max>3</Max>
+            </Range>
+          </ValueRestriction>
+        </Restrictions>
+      </Property>
+
+      <Property Name="OutputWidth" Type="Real32" SupportRTPCType="Exclusive" DisplayName="Output Width" DisplayGroup="Model">
+        <UserInterface Step="0.1" Fine="0.001" Decimals="3" />
+        <DefaultValue>100</DefaultValue>
+        <AudioEnginePropertyID>5</AudioEnginePropertyID>
+        <Restrictions>
+          <ValueRestriction>
+            <Range Type="Real32">
+              <Min>0</Min>
+              <Max>200</Max>
+            </Range>
+          </ValueRestriction>
+        </Restrictions>
+      </Property>
+
+      <Property Name="UsePrior" Type="bool" SupportRTPCType="Boolean" ForceRTPCCurveSegmentShape="Constant" DisplayName="Use Prior" DisplayGroup="Model">
+        <DefaultValue>true</DefaultValue>
+        <AudioEnginePropertyID>6</AudioEnginePropertyID>
+      </Property>
+
+      <Property Name="PriorTemperature" Type="Real32" SupportRTPCType="Exclusive" DisplayName="Prior Temperature" DisplayGroup="Model">
+        <UserInterface Step="0.1" Fine="0.001" Decimals="3" />
+        <DefaultValue>1</DefaultValue>
+        <AudioEnginePropertyID>7</AudioEnginePropertyID>
+        <Restrictions>
+          <ValueRestriction>
+            <Range Type="Real32">
+              <Min>0</Min>
+              <Max>5</Max>
+            </Range>
+          </ValueRestriction>
+        </Restrictions>
+        <Dependencies>
+          <PropertyDependency Name="UsePrior" Action="Enable">
+            <Condition>
+              <Enumeration Type="bool">
+                <Value>true</Value>
+              </Enumeration>
+            </Condition>
+          </PropertyDependency>
+        </Dependencies>
+      </Property>
+
+      <!-- Latent -->
+
+      <Property Name="Latent1Bias" Type="Real32" SupportRTPCType="Exclusive" DisplayName="Latent #1 Bias" DisplayGroup="Latent">
+        <UserInterface Step="0.1" Fine="0.001" Decimals="3" />
+        <DefaultValue>0</DefaultValue>
+        <AudioEnginePropertyID>8</AudioEnginePropertyID>
+        <Restrictions>
+          <ValueRestriction>
+            <Range Type="Real32">
+              <Min>-3</Min>
+              <Max>3</Max>
+            </Range>
+          </ValueRestriction>
+        </Restrictions>
+      </Property>
+
+      <Property Name="Latent1Scale" Type="Real32" SupportRTPCType="Exclusive" DisplayName="Latent #1 Scale" DisplayGroup="Latent">
+        <UserInterface Step="0.1" Fine="0.001" Decimals="3" />
+        <DefaultValue>1</DefaultValue>
+        <AudioEnginePropertyID>9</AudioEnginePropertyID>
+        <Restrictions>
+          <ValueRestriction>
+            <Range Type="Real32">
+              <Min>0</Min>
+              <Max>5</Max>
+            </Range>
+          </ValueRestriction>
+        </Restrictions>
+      </Property>
+
+      <Property Name="Latent2Bias" Type="Real32" SupportRTPCType="Exclusive" DisplayName="Latent #2 Bias" DisplayGroup="Latent">
+        <UserInterface Step="0.1" Fine="0.001" Decimals="3" />
+        <DefaultValue>0</DefaultValue>
+        <AudioEnginePropertyID>10</AudioEnginePropertyID>
+        <Restrictions>
+          <ValueRestriction>
+            <Range Type="Real32">
+              <Min>-3</Min>
+              <Max>3</Max>
+            </Range>
+          </ValueRestriction>
+        </Restrictions>
+      </Property>
+
+      <Property Name="Latent2Scale" Type="Real32" SupportRTPCType="Exclusive" DisplayName="Latent #2 Scale" DisplayGroup="Latent">
+        <UserInterface Step="0.1" Fine="0.001" Decimals="3" />
+        <DefaultValue>1</DefaultValue>
+        <AudioEnginePropertyID>11</AudioEnginePropertyID>
+        <Restrictions>
+          <ValueRestriction>
+            <Range Type="Real32">
+              <Min>0</Min>
+              <Max>5</Max>
+            </Range>
+          </ValueRestriction>
+        </Restrictions>
+      </Property>
+
+      <Property Name="Latent3Bias" Type="Real32" SupportRTPCType="Exclusive" DisplayName="Latent #3 Bias" DisplayGroup="Latent">
+        <UserInterface Step="0.1" Fine="0.001" Decimals="3" />
+        <DefaultValue>0</DefaultValue>
+        <AudioEnginePropertyID>12</AudioEnginePropertyID>
+        <Restrictions>
+          <ValueRestriction>
+            <Range Type="Real32">
+              <Min>-3</Min>
+              <Max>3</Max>
+            </Range>
+          </ValueRestriction>
+        </Restrictions>
+      </Property>
+
+      <Property Name="Latent3Scale" Type="Real32" SupportRTPCType="Exclusive" DisplayName="Latent #3 Scale" DisplayGroup="Latent">
+        <UserInterface Step="0.1" Fine="0.001" Decimals="3" />
+        <DefaultValue>1</DefaultValue>
+        <AudioEnginePropertyID>13</AudioEnginePropertyID>
+        <Restrictions>
+          <ValueRestriction>
+            <Range Type="Real32">
+              <Min>0</Min>
+              <Max>5</Max>
+            </Range>
+          </ValueRestriction>
+        </Restrictions>
+      </Property>
+
+      <Property Name="Latent4Bias" Type="Real32" SupportRTPCType="Exclusive" DisplayName="Latent #4 Bias" DisplayGroup="Latent">
+        <UserInterface Step="0.1" Fine="0.001" Decimals="3" />
+        <DefaultValue>0</DefaultValue>
+        <AudioEnginePropertyID>14</AudioEnginePropertyID>
+        <Restrictions>
+          <ValueRestriction>
+            <Range Type="Real32">
+              <Min>-3</Min>
+              <Max>3</Max>
+            </Range>
+          </ValueRestriction>
+        </Restrictions>
+      </Property>
+
+      <Property Name="Latent4Scale" Type="Real32" SupportRTPCType="Exclusive" DisplayName="Latent #4 Scale" DisplayGroup="Latent">
+        <UserInterface Step="0.1" Fine="0.001" Decimals="3" />
+        <DefaultValue>1</DefaultValue>
+        <AudioEnginePropertyID>15</AudioEnginePropertyID>
+        <Restrictions>
+          <ValueRestriction>
+            <Range Type="Real32">
+              <Min>0</Min>
+              <Max>5</Max>
+            </Range>
+          </ValueRestriction>
+        </Restrictions>
+      </Property>
+
+      <Property Name="Latent5Bias" Type="Real32" SupportRTPCType="Exclusive" DisplayName="Latent #5 Bias" DisplayGroup="Latent">
+        <UserInterface Step="0.1" Fine="0.001" Decimals="3" />
+        <DefaultValue>0</DefaultValue>
+        <AudioEnginePropertyID>16</AudioEnginePropertyID>
+        <Restrictions>
+          <ValueRestriction>
+            <Range Type="Real32">
+              <Min>-3</Min>
+              <Max>3</Max>
+            </Range>
+          </ValueRestriction>
+        </Restrictions>
+      </Property>
+
+      <Property Name="Latent5Scale" Type="Real32" SupportRTPCType="Exclusive" DisplayName="Latent #5 Scale" DisplayGroup="Latent">
+        <UserInterface Step="0.1" Fine="0.001" Decimals="3" />
+        <DefaultValue>1</DefaultValue>
+        <AudioEnginePropertyID>17</AudioEnginePropertyID>
+        <Restrictions>
+          <ValueRestriction>
+            <Range Type="Real32">
+              <Min>0</Min>
+              <Max>5</Max>
+            </Range>
+          </ValueRestriction>
+        </Restrictions>
+      </Property>
+
+      <Property Name="Latent6Bias" Type="Real32" SupportRTPCType="Exclusive" DisplayName="Latent #6 Bias" DisplayGroup="Latent">
+        <UserInterface Step="0.1" Fine="0.001" Decimals="3" />
+        <DefaultValue>0</DefaultValue>
+        <AudioEnginePropertyID>18</AudioEnginePropertyID>
+        <Restrictions>
+          <ValueRestriction>
+            <Range Type="Real32">
+              <Min>-3</Min>
+              <Max>3</Max>
+            </Range>
+          </ValueRestriction>
+        </Restrictions>
+      </Property>
+
+      <Property Name="Latent6Scale" Type="Real32" SupportRTPCType="Exclusive" DisplayName="Latent #6 Scale" DisplayGroup="Latent">
+        <UserInterface Step="0.1" Fine="0.001" Decimals="3" />
+        <DefaultValue>1</DefaultValue>
+        <AudioEnginePropertyID>19</AudioEnginePropertyID>
+        <Restrictions>
+          <ValueRestriction>
+            <Range Type="Real32">
+              <Min>0</Min>
+              <Max>5</Max>
+            </Range>
+          </ValueRestriction>
+        </Restrictions>
+      </Property>
+
+      <Property Name="Latent7Bias" Type="Real32" SupportRTPCType="Exclusive" DisplayName="Latent #7 Bias" DisplayGroup="Latent">
+        <UserInterface Step="0.1" Fine="0.001" Decimals="3" />
+        <DefaultValue>0</DefaultValue>
+        <AudioEnginePropertyID>20</AudioEnginePropertyID>
+        <Restrictions>
+          <ValueRestriction>
+            <Range Type="Real32">
+              <Min>-3</Min>
+              <Max>3</Max>
+            </Range>
+          </ValueRestriction>
+        </Restrictions>
+      </Property>
+
+      <Property Name="Latent7Scale" Type="Real32" SupportRTPCType="Exclusive" DisplayName="Latent #7 Scale" DisplayGroup="Latent">
+        <UserInterface Step="0.1" Fine="0.001" Decimals="3" />
+        <DefaultValue>1</DefaultValue>
+        <AudioEnginePropertyID>21</AudioEnginePropertyID>
+        <Restrictions>
+          <ValueRestriction>
+            <Range Type="Real32">
+              <Min>0</Min>
+              <Max>5</Max>
+            </Range>
+          </ValueRestriction>
+        </Restrictions>
+      </Property>
+
+      <Property Name="Latent8Bias" Type="Real32" SupportRTPCType="Exclusive" DisplayName="Latent #8 Bias" DisplayGroup="Latent">
+        <UserInterface Step="0.1" Fine="0.001" Decimals="3" />
+        <DefaultValue>0</DefaultValue>
+        <AudioEnginePropertyID>22</AudioEnginePropertyID>
+        <Restrictions>
+          <ValueRestriction>
+            <Range Type="Real32">
+              <Min>-3</Min>
+              <Max>3</Max>
+            </Range>
+          </ValueRestriction>
+        </Restrictions>
+      </Property>
+
+      <Property Name="Latent8Scale" Type="Real32" SupportRTPCType="Exclusive" DisplayName="Latent #8 Scale" DisplayGroup="Latent">
+        <UserInterface Step="0.1" Fine="0.001" Decimals="3" />
+        <DefaultValue>1</DefaultValue>
+        <AudioEnginePropertyID>23</AudioEnginePropertyID>
+        <Restrictions>
+          <ValueRestriction>
+            <Range Type="Real32">
+              <Min>0</Min>
+              <Max>5</Max>
+            </Range>
+          </ValueRestriction>
+        </Restrictions>
+      </Property>
+
+
+      <!-- Output -->
+
+      <Property Name="OutputGain" Type="Real32" SupportRTPCType="Exclusive" DisplayName="Output Gain" DisplayGroup="Output">
+        <UserInterface Step="0.1" Fine="0.001" Decimals="3" />
+        <DefaultValue>0</DefaultValue>
+        <AudioEnginePropertyID>24</AudioEnginePropertyID>
+        <Restrictions>
+          <ValueRestriction>
+            <Range Type="Real32">
+              <Min>-70</Min>
+              <Max>12</Max>
+            </Range>
+          </ValueRestriction>
+        </Restrictions>
+      </Property>
+
+      <Property Name="OutputDryWet" Type="Real32" SupportRTPCType="Exclusive" DisplayName="Output Dry/Wet" DisplayGroup="Output">
+        <UserInterface Step="0.1" Fine="0.001" Decimals="3" />
+        <DefaultValue>100</DefaultValue>
+        <AudioEnginePropertyID>25</AudioEnginePropertyID>
+        <Restrictions>
+          <ValueRestriction>
+            <Range Type="Real32">
+              <Min>0</Min>
+              <Max>100</Max>
+            </Range>
+          </ValueRestriction>
+        </Restrictions>
+      </Property>
+
+      <Property Name="OutputLimit" Type="bool" SupportRTPCType="Boolean" ForceRTPCCurveSegmentShape="Constant" DisplayName="Limit Output" DisplayGroup="Output">
+        <DefaultValue>true</DefaultValue>
+        <AudioEnginePropertyID>26</AudioEnginePropertyID>
+      </Property>
+
+      <!-- Buffer -->
+
+      <Property Name="LatencyMode" Type="Uint32" SupportRTPCType="Exclusive" DisplayName="Latency Mode" DisplayGroup="Buffer">
+        <DefaultValue>13</DefaultValue>
+        <AudioEnginePropertyID>27</AudioEnginePropertyID>
+        <Restrictions>
+          <ValueRestriction>
+            <Enumeration Type="Uint32">
+              <Value DisplayName="512">9</Value>
+              <Value DisplayName="1024">10</Value>
+              <Value DisplayName="2048">11</Value>
+              <Value DisplayName="4096">12</Value>
+              <Value DisplayName="8192">13</Value>
+              <Value DisplayName="16384">14</Value>
+              <Value DisplayName="32768">15</Value>
+            </Enumeration>
+          </ValueRestriction>
+        </Restrictions>
+      </Property>
+
     </Properties>
   </EffectPlugin>
 </PluginModule>
