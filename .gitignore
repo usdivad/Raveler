@@ -1,5 +1,8 @@
-
 # Created by https://www.gitignore.io/api/archives,linux,xcode,macos,windows,visualstudio,premake-gmake
+
+
+### RAVE Wwise ###
+Libraries/torch/libtorch
 
 ### Archives ###
 # It's better to unpack these files and commit the raw source because
