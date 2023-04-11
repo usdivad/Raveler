@@ -2,6 +2,7 @@
 
 
 ### RAVE Wwise ###
+Libraries/onnx/onnxruntime
 Libraries/torch/libtorch
 
 ### Archives ###
