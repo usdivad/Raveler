@@ -31,3 +31,8 @@ Wwise port of the [RAVE VST](https://github.com/acids-ircam/rave_vst) plugin.
 		- Adds dependencies needed for LibTorch and ONNX
 	5. Librarian > Additional Library Directories: `..\Libraries\torch\libtorch\lib;..\Libraries\onnx\onnxruntime\lib;%(AdditionalLibraryDirectories)`
 		- Adds library directories for LibTorch and ONNX
+
+4. Build, either using Visual Studio or `python "C:\Program Files (x86)\Audiokinetic\Wwise 2021.1.9.7847\Scripts\Build\Plugins\wp.py" build -c Release -x x64 -t vc160 Authoring`
+
+5. Copy library files (in `RaveWwise/Libraries/torch/libtorch/lib` and `RaveWwise/Libraries/onnx/onnxruntime/lib`) to `C:\Program Files (x86)\Audiokinetic\Wwise 2021.1.9.7847\Authoring\x64\Release\bin`
+	- Make sure *all* the files are in the top-level of `bin`, e.g. `bin/onnxruntime.dll`, not `bin/onnx/onnxruntime.dll`)
