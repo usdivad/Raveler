@@ -1,5 +1,5 @@
 #pragma once
-#include <JuceHeader.h>
+#include <string>
 #include <torch/script.h>
 #include <torch/torch.h>
 
@@ -7,10 +7,29 @@
 #define BUFFER_LENGTH 32768
 using namespace torch::indexing;
 
-class RAVE : public juce::ChangeBroadcaster {
+namespace RAVEWwise {
+    
+    // Replacement for juce::Range
+    template <typename T>
+    struct Range {
+
+        Range() = default;
+
+        Range(T inStart, T inEnd) {
+            start = inStart;
+            end = inEnd;
+        }
+
+        T start;
+        T end;
+    };
+}
+
+// TODO: Restore juce::ChangeBroadcaster() functionality
+class RAVE {
 
 public:
-  RAVE() : juce::ChangeBroadcaster() {
+  RAVE() {
     torch::jit::getProfilingMode() = false;
     c10::InferenceMode guard;
     torch::jit::setGraphExecutorOptimize(true);
@@ -27,7 +46,7 @@ public:
       return;
     }
 
-    this->model_path = juce::String(rave_model_file);
+    this->model_path = std::string(rave_model_file);
     auto named_buffers = this->model.named_buffers();
     this->has_prior = false;
     this->prior_params = torch::zeros({0});
@@ -67,7 +86,7 @@ public:
     inputs_rave.clear();
     inputs_rave.push_back(torch::ones({1, 1, getModelRatio()}));
     resetLatentBuffer();
-    sendChangeMessage();
+    //sendChangeMessage(); // TODO
   }
 
   torch::Tensor sample_prior(const int n_steps, const float temperature) {
@@ -105,8 +124,8 @@ public:
     return y;
   }
 
-  juce::Range<float> getValidBufferSizes() {
-    return juce::Range<float>(getModelRatio(), BUFFER_LENGTH);
+  RAVEWwise::Range<float> getValidBufferSizes() {
+    return RAVEWwise::Range<float>(getModelRatio(), BUFFER_LENGTH);
   }
 
   unsigned int getLatentDimensions() {
@@ -160,11 +179,11 @@ private:
   int sr;
   int latent_size;
   bool has_prior = false;
-  juce::String model_path;
+  std::string model_path;
   at::Tensor encode_params;
   at::Tensor decode_params;
   at::Tensor prior_params;
   at::Tensor latent_buffer;
   std::vector<torch::jit::IValue> inputs_rave;
-  juce::Range<float> validBufferSizeRange;
+  RAVEWwise::Range<float> validBufferSizeRange;
 };
