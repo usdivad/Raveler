@@ -29,6 +29,8 @@ the specific language governing permissions and limitations under the License.
 
 #include "RaveWwiseFXParams.h"
 
+#include "Rave.h"
+
 /// See https://www.audiokinetic.com/library/edge/?source=SDK&id=soundengine__plugins__effects.html
 /// for the documentation about effect plug-ins
 class RaveWwiseFX
