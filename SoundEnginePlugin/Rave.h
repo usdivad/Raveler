@@ -26,7 +26,7 @@ namespace RAVEWwise {
     };
 }
 
-// TODO: Implement custom ChangeBroadcaster
+// TODO: Replace juce::ChangeBroadcaster with custom implementation
 class RAVE : public juce::ChangeBroadcaster {
 
 public:

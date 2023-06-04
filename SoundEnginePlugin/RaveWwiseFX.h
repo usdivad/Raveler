@@ -65,7 +65,7 @@ namespace rave_parameters {
 	const std::string prior_temperature{ "prior_temperature" };
 } // namespace rave_parameters
 
-// TODO: Implement custom NormalisableRange
+// TODO: Replace juce::NormalisableRange with custom implementation
 namespace rave_ranges {
 	const juce::NormalisableRange<float> gainRange(-70.f, 12.f);
 	const juce::NormalisableRange<float> latentScaleRange(0.0f, 5.0f);

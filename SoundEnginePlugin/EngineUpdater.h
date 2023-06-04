@@ -4,7 +4,7 @@
 
 class RaveWwiseFX; // forward declaration
 
-// TODO: Implement custom ThreadPoolJob
+// TODO: Replace juce::ThreadPoolJob with custom implementation
 class UpdateEngineJob : public juce::ThreadPoolJob {
 public:
 	explicit UpdateEngineJob(RaveWwiseFX& processor, const std::string modelPath);
