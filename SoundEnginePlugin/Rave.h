@@ -1,5 +1,6 @@
 #pragma once
 #include <string>
+#include <JuceHeader.h>
 #include <torch/script.h>
 #include <torch/torch.h>
 
@@ -25,8 +26,8 @@ namespace RAVEWwise {
     };
 }
 
-// TODO: Restore juce::ChangeBroadcaster() functionality
-class RAVE {
+// TODO: Implement custom ChangeBroadcaster
+class RAVE : public juce::ChangeBroadcaster {
 
 public:
   RAVE() {
@@ -86,7 +87,7 @@ public:
     inputs_rave.clear();
     inputs_rave.push_back(torch::ones({1, 1, getModelRatio()}));
     resetLatentBuffer();
-    //sendChangeMessage(); // TODO
+    sendChangeMessage(); // TODO: Implement custom
   }
 
   torch::Tensor sample_prior(const int n_steps, const float temperature) {
