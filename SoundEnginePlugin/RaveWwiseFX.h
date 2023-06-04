@@ -35,9 +35,42 @@ the specific language governing permissions and limitations under the License.
 
 #include <JuceHeader.h>
 #include <algorithm>
+#include <string>
+#include <vector>
 
 #include <torch/script.h>
 #include <torch/torch.h>
+
+#define EPSILON 0.0000001
+#define DEBUG 0
+
+const size_t AVAILABLE_DIMS = 8;
+const std::vector<std::string> channel_modes = { "L", "R", "L + R" };
+
+namespace rave_parameters {
+	const std::string model_selection{ "model_selection" };
+	const std::string input_gain{ "input_gain" };
+	const std::string channel_mode{ "channel_mode" };
+	const std::string input_thresh{ "input_threshold" };
+	const std::string input_ratio{ "input_ratio" };
+	const std::string latent_jitter{ "latent_jitter" };
+	const std::string output_width{ "output_width" };
+	const std::string output_gain{ "output_gain" };
+	const std::string output_limit{ "output_limit" };
+	const std::string output_drywet{ "ouptut_drywet" };
+	const std::string latent_scale{ "latent_scale" };
+	const std::string latent_bias{ "latent_bias" };
+	const std::string latency_mode{ "latency_mode" };
+	const std::string use_prior{ "use_prior" };
+	const std::string prior_temperature{ "prior_temperature" };
+} // namespace rave_parameters
+
+// TODO: Implement custom NormalisableRange
+namespace rave_ranges {
+	const juce::NormalisableRange<float> gainRange(-70.f, 12.f);
+	const juce::NormalisableRange<float> latentScaleRange(0.0f, 5.0f);
+	const juce::NormalisableRange<float> latentBiasRange(-3.0f, 3.0f);
+} // namespace rave_ranges
 
 /// See https://www.audiokinetic.com/library/edge/?source=SDK&id=soundengine__plugins__effects.html
 /// for the documentation about effect plug-ins
