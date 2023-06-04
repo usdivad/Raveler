@@ -29,7 +29,15 @@ the specific language governing permissions and limitations under the License.
 
 #include "RaveWwiseFXParams.h"
 
+#include "CircularBuffer.h"
+#include "EngineUpdater.h"
 #include "Rave.h"
+
+#include <JuceHeader.h>
+#include <algorithm>
+
+#include <torch/script.h>
+#include <torch/torch.h>
 
 /// See https://www.audiokinetic.com/library/edge/?source=SDK&id=soundengine__plugins__effects.html
 /// for the documentation about effect plug-ins
