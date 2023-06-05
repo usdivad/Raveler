@@ -57,7 +57,7 @@ namespace rave_parameters {
 	const std::string output_width{ "output_width" };
 	const std::string output_gain{ "output_gain" };
 	const std::string output_limit{ "output_limit" };
-	const std::string output_drywet{ "ouptut_drywet" };
+	const std::string output_drywet{ "output_drywet" };
 	const std::string latent_scale{ "latent_scale" };
 	const std::string latent_bias{ "latent_bias" };
 	const std::string latency_mode{ "latency_mode" };
