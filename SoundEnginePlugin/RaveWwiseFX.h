@@ -78,6 +78,8 @@ class RaveWwiseFX
     : public AK::IAkOutOfPlaceEffectPlugin
 {
 public:
+    //------------------------------------------------------------------------------------------------------------------
+
     RaveWwiseFX();
     ~RaveWwiseFX();
 
@@ -104,10 +106,24 @@ public:
     /// Return AK_DataReady or AK_NoMoreData, depending if there would be audio output or not at that point.
     AKRESULT TimeSkip(AkUInt32 &io_uFrames) override;
 
+    //------------------------------------------------------------------------------------------------------------------
+
+    std::unique_ptr<RAVE> _rave;
+    float _inputAmplitudeL;
+    float _inputAmplitudeR;
+    float _outputAmplitudeL;
+    float _outputAmplitudeR;
+    bool _plays = false;
+
 private:
+    //------------------------------------------------------------------------------------------------------------------
+
     RaveWwiseFXParams* m_pParams;
     AK::IAkPluginMemAlloc* m_pAllocator;
     AK::IAkEffectPluginContext* m_pContext;
+
+    //------------------------------------------------------------------------------------------------------------------
+
 };
 
 #endif // RaveWwiseFX_H
