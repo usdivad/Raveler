@@ -72,8 +72,7 @@ RaveWwiseFX::RaveWwiseFX()
     // TODO
     //_engineThreadPool = std::make_unique<juce::ThreadPool>(1);
     
-    // TODO
-    //_rave.reset(new RAVE());
+    _rave.reset(new RAVE());
 
     // TODO: Parameter listener equivalents
 

@@ -26,11 +26,12 @@ namespace RAVEWwise {
     };
 }
 
-// TODO: Replace juce::ChangeBroadcaster with custom implementation
-class RAVE : public juce::ChangeBroadcaster {
+// TODO: Inherit from custom implementation of juce::ChangeBroadcaster?
+//       (May be unnecessary since in RAVE VST the ChangeBroadcaster functionality is used for the plugin editor)
+class RAVE {
 
 public:
-  RAVE() : juce::ChangeBroadcaster() {
+  RAVE() {
     torch::jit::getProfilingMode() = false;
     c10::InferenceMode guard;
     torch::jit::setGraphExecutorOptimize(true);
@@ -87,7 +88,7 @@ public:
     inputs_rave.clear();
     inputs_rave.push_back(torch::ones({1, 1, getModelRatio()}));
     resetLatentBuffer();
-    sendChangeMessage(); // TODO: Implement custom
+    //sendChangeMessage(); // TODO: Implement or remove
   }
 
   torch::Tensor sample_prior(const int n_steps, const float temperature) {
