@@ -124,6 +124,60 @@ private:
 
     //------------------------------------------------------------------------------------------------------------------
 
+    // TODO
+    //mutable CriticalSection _engineUpdateMutex;
+    //juce::AudioProcessorValueTreeState _avts;
+    //std::unique_ptr<juce::ThreadPool> _engineThreadPool;
+    
+    std::string _loadedModelName;
+
+    /*
+     *Allocate some memory to use as the circular_buffer storage
+     *for each of the circular_buffer types to be created
+     */
+    double _sampleRate = 0;
+    std::unique_ptr<circular_buffer<float, float>[]> _inBuffer;
+    std::unique_ptr<circular_buffer<float, float>[]> _outBuffer;
+    std::vector<std::unique_ptr<float[]>> _inModel, _outModel;
+    std::unique_ptr<std::thread> _computeThread;
+
+    bool _editorReady;
+
+    float* _inFifoBuffer{ nullptr };
+    float* _outFifoBuffer{ nullptr };
+
+    std::atomic<float>* _inputGainValue;
+    std::atomic<float>* _thresholdValue;
+    std::atomic<float>* _ratioValue;
+    std::atomic<float>* _latentJitterValue;
+    std::atomic<float>* _widthValue;
+    std::atomic<float>* _outputGainValue;
+    std::atomic<float>* _dryWetValue;
+    std::atomic<float>* _limitValue;
+    std::atomic<float>* _channelMode;
+    // latency mode contains the power of 2 of the current refresh rate.
+    std::atomic<float>* _latencyMode;
+    std::atomic<float>* _usePrior;
+    std::atomic<float>* _priorTemperature;
+
+    std::array<std::atomic<float>*, AVAILABLE_DIMS>* _latentScale;
+    std::array<std::atomic<float>*, AVAILABLE_DIMS>* _latentBias;
+    std::atomic<bool> _isMuted{ true };
+
+    enum class muting : int { ignore = 0, mute, unmute };
+
+    std::atomic<muting> _fadeScheduler{ muting::mute };
+    juce::LinearSmoothedValue<float> _smoothedFadeInOut;
+    juce::LinearSmoothedValue<float> _smoothedWetGain;
+    juce::LinearSmoothedValue<float> _smoothedDryGain;
+
+    // TODO
+    // DSP effect
+    //juce::dsp::Compressor<float> _compressorEffect;
+    //juce::dsp::Gain<float> _inputGainEffect;
+    //juce::dsp::Gain<float> _outputGainEffect;
+    //juce::dsp::Limiter<float> _limiterEffect;
+    //juce::dsp::DryWetMixer<float> _dryWetMixerEffect;
 };
 
 #endif // RaveWwiseFX_H
