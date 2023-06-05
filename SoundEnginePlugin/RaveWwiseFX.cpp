@@ -29,6 +29,8 @@ the specific language governing permissions and limitations under the License.
 
 #include <AK/AkWwiseSDKVersion.h>
 
+#include <math.h>
+
 AK::IAkPlugin* CreateRaveWwiseFX(AK::IAkPluginMemAlloc* in_pAllocator)
 {
     return AK_PLUGIN_NEW(in_pAllocator, RaveWwiseFX());
@@ -46,10 +48,44 @@ RaveWwiseFX::RaveWwiseFX()
     , m_pAllocator(nullptr)
     , m_pContext(nullptr)
 {
+    // TODO: Make sure all dynamic allocations use m_pAllocator
+
+    _loadedModelName = "";
+    _computeThread = nullptr;
+
+    // TODO
+    //_dryWetMixerEffect = new juce::dsp::DryWetMixer<float>(BUFFER_LENGTH);
+    //_dryWetMixerEffect.setMixingRule(juce::dsp::DryWetMixingRule::balanced);
+
+    _inBuffer = std::make_unique<circular_buffer<float, float>[]>(1);
+    _outBuffer = std::make_unique<circular_buffer<float, float>[]>(2);
+    _inModel.push_back(std::make_unique<float[]>(BUFFER_LENGTH));
+    _outModel.push_back(std::make_unique<float[]>(BUFFER_LENGTH));
+    _outModel.push_back(std::make_unique<float[]>(BUFFER_LENGTH));
+
+    // TODO: Initialize _inputGainValue through _priorTemperature
+
+    // TODO: Initialize internal values
+    _latentScale = new std::array<std::atomic<float>*, AVAILABLE_DIMS>;
+    _latentBias = new std::array<std::atomic<float>*, AVAILABLE_DIMS>;
+    
+    // TODO
+    //_engineThreadPool = std::make_unique<juce::ThreadPool>(1);
+    
+    // TODO
+    //_rave.reset(new RAVE());
+
+    // TODO: Parameter listener equivalents
+
+    _editorReady = false;
 }
 
 RaveWwiseFX::~RaveWwiseFX()
 {
+    if (_computeThread)
+    {
+        _computeThread->join();
+    }
 }
 
 AKRESULT RaveWwiseFX::Init(AK::IAkPluginMemAlloc* in_pAllocator, AK::IAkEffectPluginContext* in_pContext, AK::IAkPluginParam* in_pParams, AkAudioFormat& in_rFormat)
