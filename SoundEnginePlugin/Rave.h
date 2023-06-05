@@ -30,7 +30,7 @@ namespace RAVEWwise {
 class RAVE : public juce::ChangeBroadcaster {
 
 public:
-  RAVE() {
+  RAVE() : juce::ChangeBroadcaster() {
     torch::jit::getProfilingMode() = false;
     c10::InferenceMode guard;
     torch::jit::setGraphExecutorOptimize(true);
