@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ImportGroup Label="PropertySheets" />
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup />
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <AdditionalIncludeDirectories>..\Libraries\torch\libtorch\include;..\Libraries\torch\libtorch\include\torch\csrc\api\include;..\Libraries\onnx\onnxruntime\include;..\Libraries\juce\modules;..\Libraries\juce\JuceLibraryCode;..\Libraries\bs_thread_pool;C:\Program Files (x86)\Audiokinetic\Wwise 2021.1.9.7847\SDK\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>NDEBUG;WIN64;WIN32_LEAN_AND_MEAN;NOMINMAX;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalOptions>/utf-8 /d2FH4- /GR %(AdditionalOptions)</AdditionalOptions>
+    </ClCompile>
+    <Lib>
+      <AdditionalDependencies>..\Libraries\torch\libtorch\lib\c10.lib;..\Libraries\torch\libtorch\lib\torch.lib;..\Libraries\torch\libtorch\lib\torch_cpu.lib;..\Libraries\onnx\onnxruntime\lib\onnxruntime.lib;..\Libraries\onnx\onnxruntime\lib\onnxruntime_providers_shared.lib;;;;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib</AdditionalDependencies>
+    </Lib>
+    <Lib>
+      <AdditionalLibraryDirectories>..\Libraries\torch\libtorch\lib;..\Libraries\onnx\onnxruntime\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemGroup />
+</Project>
