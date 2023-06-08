@@ -8,6 +8,7 @@
 #define BUFFER_LENGTH 32768
 using namespace torch::indexing;
 
+// TODO: Move this to its own file
 namespace RAVEWwise {
     
     // Replacement for juce::Range
