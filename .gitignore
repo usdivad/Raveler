@@ -5,6 +5,7 @@
 Libraries/onnx/onnxruntime
 Libraries/torch/libtorch
 Libraries/juce/modules
+Libraries/bs_thread_pool
 
 ### Archives ###
 # It's better to unpack these files and commit the raw source because
