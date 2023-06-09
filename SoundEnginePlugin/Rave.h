@@ -4,6 +4,9 @@
 #include <torch/script.h>
 #include <torch/torch.h>
 
+// For debug printing
+#include <AK/Tools/Common/AkPlatformFuncs.h>
+
 #define MAX_LATENT_BUFFER_SIZE 32
 #define BUFFER_LENGTH 32768
 using namespace torch::indexing;
@@ -57,34 +60,62 @@ public:
     std::cout << "[ ] RAVE - Model successfully loaded: " << rave_model_file
               << std::endl;
 
+    AKPLATFORM::OutputDebugMsg("\n[ ] RAVE - Model successfully loaded: ");
+    AKPLATFORM::OutputDebugMsg(rave_model_file.c_str());
+
     for (auto const &i : named_buffers) {
       if (i.name == "_rave.sampling_rate") {
         this->sr = i.value.item<int>();
         std::cout << "\tSampling rate: " << this->sr << std::endl;
+
+		AKPLATFORM::OutputDebugMsg("\tSampling rate: ");
+		AKPLATFORM::OutputDebugMsg(std::to_string(this->sr).c_str());
       }
       if (i.name == "_rave.latent_size") {
         this->latent_size = i.value.item<int>();
         std::cout << "\tLatent size: " << this->latent_size << std::endl;
+
+		AKPLATFORM::OutputDebugMsg("\tLatent size: ");
+		AKPLATFORM::OutputDebugMsg(std::to_string(this->latent_size).c_str());
       }
       if (i.name == "encode_params") {
         this->encode_params = i.value;
         std::cout << "\tEncode parameters: " << this->encode_params
                   << std::endl;
+
+		AKPLATFORM::OutputDebugMsg("\tEncode parameters: ");
+		AKPLATFORM::OutputDebugMsg(this->encode_params.toString().c_str());
       }
       if (i.name == "decode_params") {
         this->decode_params = i.value;
         std::cout << "\tDecode parameters: " << this->decode_params
                   << std::endl;
+
+		AKPLATFORM::OutputDebugMsg("\tDecode parameters: ");
+		AKPLATFORM::OutputDebugMsg(this->decode_params.toString().c_str());
       }
       if (i.name == "prior_params") {
         this->prior_params = i.value;
         this->has_prior = true;
         std::cout << "\tPrior parameters: " << this->prior_params << std::endl;
+
+		AKPLATFORM::OutputDebugMsg("\tPrior parameters: ");
+		AKPLATFORM::OutputDebugMsg(this->prior_params.toString().c_str());
       }
     }
+    
     std::cout << "\tFull latent size: " << getFullLatentDimensions()
               << std::endl;
+	AKPLATFORM::OutputDebugMsg("\tFull latent size: ");
+	AKPLATFORM::OutputDebugMsg(std::to_string(getFullLatentDimensions()).c_str());
+
     std::cout << "\tRatio: " << getModelRatio() << std::endl;
+	AKPLATFORM::OutputDebugMsg("\tRatio: ");
+	AKPLATFORM::OutputDebugMsg(std::to_string(getModelRatio()).c_str());
+
+	AKPLATFORM::OutputDebugMsg("\n");
+
+
     c10::InferenceMode guard;
     inputs_rave.clear();
     inputs_rave.push_back(torch::ones({1, 1, getModelRatio()}));
