@@ -154,6 +154,33 @@ AKRESULT RaveWwiseFX::TimeSkip(AkUInt32 &io_uFrames)
     return AK_DataReady;
 }
 
+//----------------------------------------------------------------------------------------------------------------------
+
+void RaveWwiseFX::modelPerform()
+{
+	// TODO
+}
+
+void RaveWwiseFX::detectAvailableModels()
+{
+	// TODO
+}
+
+void RaveWwiseFX::mute()
+{
+	// TODO
+}
+
+void RaveWwiseFX::unmute()
+{
+	// TODO
+}
+
+void RaveWwiseFX::updateBufferSizes()
+{
+	// TODO
+}
+
 void RaveWwiseFX::updateEngine(const std::string& modelFile)
 {
     if (modelFile == _loadedModelName)
@@ -171,19 +198,4 @@ void RaveWwiseFX::updateEngine(const std::string& modelFile)
     }
 
     std::future<void> engineUpdateFuture = _engineThreadPool->submit(RAVEWwise::UpdateEngineJob, this, modelFile);
-}
-
-void RaveWwiseFX::updateBufferSizes()
-{
-    // TODO
-}
-
-void RaveWwiseFX::mute()
-{
-    // TODO
-}
-
-void RaveWwiseFX::unmute()
-{
-    // TODO
 }
