@@ -33,13 +33,16 @@ the specific language governing permissions and limitations under the License.
 #include "EngineUpdater.h"
 #include "Rave.h"
 
-#include <JuceHeader.h>
 #include <algorithm>
+#include <mutex>
 #include <string>
+#include <thread>
 #include <vector>
 
 #include <torch/script.h>
 #include <torch/torch.h>
+#include <JuceHeader.h>
+#include <BS_thread_pool.hpp>
 
 #define EPSILON 0.0000001
 #define DEBUG 0
@@ -83,6 +86,9 @@ public:
     RaveWwiseFX();
     ~RaveWwiseFX();
 
+	//------------------------------------------------------------------------------------------------------------------
+    // IAkEffectPlugin::
+
     /// Plug-in initialization.
     /// Prepares the plug-in for data processing, allocates memory and sets up the initial conditions.
     AKRESULT Init(AK::IAkPluginMemAlloc* in_pAllocator, AK::IAkEffectPluginContext* in_pContext, AK::IAkPluginParam* in_pParams, AkAudioFormat& in_rFormat) override;
@@ -106,7 +112,18 @@ public:
     /// Return AK_DataReady or AK_NoMoreData, depending if there would be audio output or not at that point.
     AKRESULT TimeSkip(AkUInt32 &io_uFrames) override;
 
+	//------------------------------------------------------------------------------------------------------------------
+    // RaveAP functions
+
+    void updateEngine(const std::string& modelFile);
+
+    void updateBufferSizes();
+
+    void mute();
+    void unmute();
+
     //------------------------------------------------------------------------------------------------------------------
+    // RaveAP variables
 
     std::unique_ptr<RAVE> _rave;
     float _inputAmplitudeL;
@@ -123,11 +140,13 @@ private:
     AK::IAkEffectPluginContext* m_pContext;
 
     //------------------------------------------------------------------------------------------------------------------
+	// RaveAP variables
 
     // TODO
     //mutable CriticalSection _engineUpdateMutex;
-    //juce::AudioProcessorValueTreeState _avts;
-    //std::unique_ptr<juce::ThreadPool> _engineThreadPool;
+    std::mutex _engineUpdateMutex;
+
+    std::unique_ptr<BS::thread_pool> _engineThreadPool;
     
     std::string _loadedModelName;
 

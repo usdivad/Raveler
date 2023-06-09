@@ -69,8 +69,7 @@ RaveWwiseFX::RaveWwiseFX()
     _latentScale = new std::array<std::atomic<float>*, AVAILABLE_DIMS>;
     _latentBias = new std::array<std::atomic<float>*, AVAILABLE_DIMS>;
     
-    // TODO
-    //_engineThreadPool = std::make_unique<juce::ThreadPool>(1);
+    _engineThreadPool = std::make_unique<BS::thread_pool>(1);
     
     _rave.reset(new RAVE());
 
@@ -153,4 +152,38 @@ void RaveWwiseFX::Execute(AkAudioBuffer* in_pBuffer, AkUInt32 in_ulnOffset, AkAu
 AKRESULT RaveWwiseFX::TimeSkip(AkUInt32 &io_uFrames)
 {
     return AK_DataReady;
+}
+
+void RaveWwiseFX::updateEngine(const std::string& modelFile)
+{
+    if (modelFile == _loadedModelName)
+    {
+        return;
+    }
+
+    _loadedModelName = modelFile;
+
+    std::scoped_lock irCalculationLock(_engineUpdateMutex);
+
+    if (_engineThreadPool)
+    {
+        _engineThreadPool->purge();
+    }
+
+    std::future<void> engineUpdateFuture = _engineThreadPool->submit(RAVEWwise::UpdateEngineJob, this, modelFile);
+}
+
+void RaveWwiseFX::updateBufferSizes()
+{
+    // TODO
+}
+
+void RaveWwiseFX::mute()
+{
+    // TODO
+}
+
+void RaveWwiseFX::unmute()
+{
+    // TODO
 }
