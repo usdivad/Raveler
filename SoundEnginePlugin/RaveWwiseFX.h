@@ -75,8 +75,18 @@ namespace rave_ranges {
 	const juce::NormalisableRange<float> latentBiasRange(-3.0f, 3.0f);
 } // namespace rave_ranges
 
+
+//----------------------------------------------------------------------------------------------------------------------
+// RaveWwiseFX
+//----------------------------------------------------------------------------------------------------------------------
+
+/// Wwise plugin that runs RAVE.
+
 /// See https://www.audiokinetic.com/library/edge/?source=SDK&id=soundengine__plugins__effects.html
 /// for the documentation about effect plug-ins
+
+// TODO: Capitalize ported function and variable names
+
 class RaveWwiseFX
     : public AK::IAkOutOfPlaceEffectPlugin
 {
@@ -115,12 +125,41 @@ public:
 	//------------------------------------------------------------------------------------------------------------------
     // RaveAP functions
 
-    void updateEngine(const std::string& modelFile);
+    // TODO: Implement commented out functions
 
-    void updateBufferSizes();
+	//void prepareToPlay(double sampleRate, int samplesPerBlock) override;
+	//void releaseResources() override;
+	//void processBlock(juce::AudioBuffer<float>&, juce::MidiBuffer&) override;
+	//void modelPerform();
+	//void detectAvailableModels();
+	//juce::AudioProcessorEditor* createEditor() override;
+	//bool hasEditor() const override;
+	//const juce::String getName() const override;
+	//bool acceptsMidi() const override;
+	//bool producesMidi() const override;
+	//bool isMidiEffect() const override;
+	//double getTailLengthSeconds() const override;
+	//int getNumPrograms() override;
+	//int getCurrentProgram() override;
+	//void setCurrentProgram(int index) override;
+	//const juce::String getProgramName(int index) override;
+	//void changeProgramName(int index, const juce::String& newName) override;
+	//AudioProcessorValueTreeState::ParameterLayout createParameterLayout();
+	//void getStateInformation(juce::MemoryBlock& destData) override;
+	//void setStateInformation(const void* data, int sizeInBytes) override;
+	//void parameterChanged(const String& parameterID, float newValue) override;
 
-    void mute();
-    void unmute();
+	void mute();
+	void unmute();
+	bool getIsMuted() const;
+	void updateBufferSizes();
+
+	void updateEngine(const std::string& modelFile);
+	//std::string capitalizeFirstLetter(std::string text);
+	//float getAmplitude(float* buffer, size_t len);
+
+	double getSampleRate() { return _sampleRate; }
+
 
     //------------------------------------------------------------------------------------------------------------------
     // RaveAP variables
@@ -142,12 +181,8 @@ private:
     //------------------------------------------------------------------------------------------------------------------
 	// RaveAP variables
 
-    // TODO
-    //mutable CriticalSection _engineUpdateMutex;
     std::mutex _engineUpdateMutex;
-
     std::unique_ptr<BS::thread_pool> _engineThreadPool;
-    
     std::string _loadedModelName;
 
     /*
