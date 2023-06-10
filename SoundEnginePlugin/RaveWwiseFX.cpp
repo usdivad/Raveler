@@ -29,6 +29,7 @@ the specific language governing permissions and limitations under the License.
 
 #include <AK/AkWwiseSDKVersion.h>
 
+#include <codecvt>
 #include <math.h>
 
 AK::IAkPlugin* CreateRaveWwiseFX(AK::IAkPluginMemAlloc* in_pAllocator)
@@ -91,6 +92,19 @@ AKRESULT RaveWwiseFX::Init(AK::IAkPluginMemAlloc* in_pAllocator, AK::IAkEffectPl
     m_pParams = (RaveWwiseFXParams*)in_pParams;
     m_pAllocator = in_pAllocator;
     m_pContext = in_pContext;
+
+    // --------
+    // Load the model
+
+    // NOTE: We do direct AkOSChar*-to-char* conversion via casting here, since CONVERT_OSCHAR_TO_CHAR() returns incorrect results
+    //
+    // TODO: - Escape backslashes for file paths ("\" --> "\\")
+    //       - Move the char-conversion/string-creation to RaveWwiseFXParams?
+
+    AkOSChar* modelFilePathOsStr = m_pParams->NonRTPC.sModelFilePath;
+    char* modelFilePathCStr = reinterpret_cast<char*>(modelFilePathOsStr);
+    std::string modelFilePath = std::string(modelFilePathCStr);
+    updateEngine(modelFilePath);
 
     return AK_Success;
 }
