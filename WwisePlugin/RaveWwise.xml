@@ -442,6 +442,13 @@ for the documentation about the plugin xml format
         </Restrictions>
       </Property>
 
+      <!-- Custom -->
+
+      <Property Name="ModelFilePath" Type="string" DisplayName="Model File Path">
+        <DefaultValue></DefaultValue>
+        <AudioEnginePropertyID>28</AudioEnginePropertyID>
+      </Property>
+
     </Properties>
   </EffectPlugin>
 </PluginModule>
