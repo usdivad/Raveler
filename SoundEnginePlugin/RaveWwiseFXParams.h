@@ -27,6 +27,8 @@ the specific language governing permissions and limitations under the License.
 #ifndef RaveWwiseFXParams_H
 #define RaveWwiseFXParams_H
 
+#include <string>
+
 #include <AK/SoundEngine/Common/IAkPlugin.h>
 #include <AK/Plugin/PluginServices/AkFXParameterChangeHandler.h>
 
@@ -75,8 +77,12 @@ static const AkPluginParamID PARAM_OUTPUT_LIMIT_ID = 26;
 // Buffer
 static const AkPluginParamID PARAM_LATENCY_MODE_ID = 27;
 
+// Custom
+static const AkPluginParamID PARAM_MODEL_FILE_PATH_ID = 28;
+
+
 // Num params
-static const AkUInt32 NUM_PARAMS = 28;
+static const AkUInt32 NUM_PARAMS = 29;
 
 // ----------------------------------------------------------------
 
@@ -90,6 +96,7 @@ enum class EChannelMode : AkUInt32
 
 // ----------------------------------------------------------------
 
+// TODO: Move some of these to non-RTPC params struct
 struct RaveWwiseRTPCParams
 {
     // Input
@@ -142,6 +149,8 @@ struct RaveWwiseRTPCParams
 
 struct RaveWwiseNonRTPCParams
 {
+	// Custom
+	AkOSChar* sModelFilePath;
 };
 
 struct RaveWwiseFXParams

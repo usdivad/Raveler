@@ -88,7 +88,10 @@ AKRESULT RaveWwiseFXParams::Init(AK::IAkPluginMemAlloc* in_pAllocator, const voi
 
 		RTPC.uLatencyMode = 13;
 
+		NonRTPC.sModelFilePath = nullptr;
+
         m_paramChangeHandler.SetAllParamChanges();
+
         return AK_Success;
     }
 
@@ -107,7 +110,8 @@ AKRESULT RaveWwiseFXParams::SetParamsBlock(const void* in_pParamsBlock, AkUInt32
     AkUInt8* pParamsBlock = (AkUInt8*)in_pParamsBlock;
 
     // Read bank data here
-    
+	// Needs to be read in same order as RaveWwisePlugin::GetBankParameters()
+
     RTPC.fInputGain = READBANKDATA(AkReal32, pParamsBlock, in_ulBlockSize);
 	RTPC.uChannelMode = READBANKDATA(AkUInt32, pParamsBlock, in_ulBlockSize);
 	
@@ -141,6 +145,7 @@ AKRESULT RaveWwiseFXParams::SetParamsBlock(const void* in_pParamsBlock, AkUInt32
 
 	RTPC.uLatencyMode = READBANKDATA(AkUInt32, pParamsBlock, in_ulBlockSize);
 
+	NonRTPC.sModelFilePath = READBANKDATA(AkOSChar*, pParamsBlock, in_ulBlockSize);
 
     CHECKBANKDATASIZE(in_ulBlockSize, eResult);
     m_paramChangeHandler.SetAllParamChanges();
@@ -153,6 +158,7 @@ AKRESULT RaveWwiseFXParams::SetParam(AkPluginParamID in_paramID, const void* in_
     AKRESULT eResult = AK_Success;
 
     // Handle parameter change here
+	// TODO: Replace C-style casts with C++-style casts
     switch (in_paramID)
     {
 
@@ -270,6 +276,11 @@ AKRESULT RaveWwiseFXParams::SetParam(AkPluginParamID in_paramID, const void* in_
 	case PARAM_LATENCY_MODE_ID:
 		RTPC.uLatencyMode = *((AkUInt32*)in_pValue);
 		m_paramChangeHandler.SetParamChange(PARAM_LATENCY_MODE_ID);
+		break;
+
+	case PARAM_MODEL_FILE_PATH_ID:
+		NonRTPC.sModelFilePath = ((AkOSChar*)in_pValue);
+		m_paramChangeHandler.SetParamChange(PARAM_MODEL_FILE_PATH_ID);
 		break;
 
     default:
