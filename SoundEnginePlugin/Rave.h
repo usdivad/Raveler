@@ -49,6 +49,14 @@ public:
       std::cerr << e.what();
       std::cerr << e.msg();
       std::cerr << "error loading the model\n";
+
+	  AKPLATFORM::OutputDebugMsg("\n[ ] RAVE - Error loading model: ");
+	  AKPLATFORM::OutputDebugMsg(rave_model_file.c_str());
+	  AKPLATFORM::OutputDebugMsg("\t // ");
+	  AKPLATFORM::OutputDebugMsg(e.what());
+	  AKPLATFORM::OutputDebugMsg("\t // ");
+	  AKPLATFORM::OutputDebugMsg(e.msg().c_str());
+
       return;
     }
 
