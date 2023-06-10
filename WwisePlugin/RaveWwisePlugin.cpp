@@ -38,7 +38,42 @@ RaveWwisePlugin::~RaveWwisePlugin()
 bool RaveWwisePlugin::GetBankParameters(const GUID & in_guidPlatform, AK::Wwise::Plugin::DataWriter& in_dataWriter) const
 {
     // Write bank data here
-    in_dataWriter.WriteReal32(m_propertySet.GetReal32(in_guidPlatform, "Placeholder"));
+	// Needs to be written in same order as RaveWwiseFXParams::SetParamsBlock()
+
+    in_dataWriter.WriteReal32(m_propertySet.GetReal32(in_guidPlatform, "InputGain"));
+	in_dataWriter.WriteUInt32(m_propertySet.GetUInt32(in_guidPlatform, "ChannelMode"));
+	
+	in_dataWriter.WriteReal32(m_propertySet.GetReal32(in_guidPlatform, "InputThreshold"));
+	in_dataWriter.WriteReal32(m_propertySet.GetReal32(in_guidPlatform, "InputRatio"));
+
+	in_dataWriter.WriteReal32(m_propertySet.GetReal32(in_guidPlatform, "LatentJitter"));
+	in_dataWriter.WriteReal32(m_propertySet.GetReal32(in_guidPlatform, "OutputWidth"));
+	in_dataWriter.WriteBool(m_propertySet.GetBool(in_guidPlatform, "UsePrior"));
+	in_dataWriter.WriteReal32(m_propertySet.GetReal32(in_guidPlatform, "PriorTemperature"));
+
+	in_dataWriter.WriteReal32(m_propertySet.GetReal32(in_guidPlatform, "Latent1Bias"));
+	in_dataWriter.WriteReal32(m_propertySet.GetReal32(in_guidPlatform, "Latent1Scale"));
+	in_dataWriter.WriteReal32(m_propertySet.GetReal32(in_guidPlatform, "Latent2Bias"));
+	in_dataWriter.WriteReal32(m_propertySet.GetReal32(in_guidPlatform, "Latent2Scale"));
+	in_dataWriter.WriteReal32(m_propertySet.GetReal32(in_guidPlatform, "Latent3Bias"));
+	in_dataWriter.WriteReal32(m_propertySet.GetReal32(in_guidPlatform, "Latent3Scale"));
+	in_dataWriter.WriteReal32(m_propertySet.GetReal32(in_guidPlatform, "Latent4Bias"));
+	in_dataWriter.WriteReal32(m_propertySet.GetReal32(in_guidPlatform, "Latent4Scale"));
+	in_dataWriter.WriteReal32(m_propertySet.GetReal32(in_guidPlatform, "Latent5Bias"));
+	in_dataWriter.WriteReal32(m_propertySet.GetReal32(in_guidPlatform, "Latent5Scale"));
+	in_dataWriter.WriteReal32(m_propertySet.GetReal32(in_guidPlatform, "Latent6Bias"));
+	in_dataWriter.WriteReal32(m_propertySet.GetReal32(in_guidPlatform, "Latent6Scale"));
+	in_dataWriter.WriteReal32(m_propertySet.GetReal32(in_guidPlatform, "Latent7Bias"));
+	in_dataWriter.WriteReal32(m_propertySet.GetReal32(in_guidPlatform, "Latent7Scale"));
+	in_dataWriter.WriteReal32(m_propertySet.GetReal32(in_guidPlatform, "Latent8Bias"));
+	in_dataWriter.WriteReal32(m_propertySet.GetReal32(in_guidPlatform, "Latent8Scale"));
+
+	in_dataWriter.WriteReal32(m_propertySet.GetReal32(in_guidPlatform, "OutputGain"));
+	in_dataWriter.WriteReal32(m_propertySet.GetReal32(in_guidPlatform, "OutputDryWet"));
+
+	in_dataWriter.WriteUInt32(m_propertySet.GetUInt32(in_guidPlatform, "LatencyMode"));
+
+	in_dataWriter.WriteString(m_propertySet.GetString(in_guidPlatform, "ModelFilePath"));
 
     return true;
 }
