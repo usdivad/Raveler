@@ -44,6 +44,642 @@ the specific language governing permissions and limitations under the License.
 #include <JuceHeader.h>
 #include <BS_thread_pool.hpp>
 
+//----------------------------------------------------------------------------------------------------------------------
+// TODO: Move these to their own files
+
+namespace RAVEWwise
+{
+    // Replacement for juce::NormalisableRange.
+
+    //==============================================================================
+    /**
+        Represents a mapping between an arbitrary range of values and a
+        normalised 0->1 range.
+
+        The properties of the mapping also include an optional snapping interval
+        and skew-factor.
+
+        @see Range
+
+        @tags{Core}
+    */
+    template <typename ValueType>
+    class NormalisableRange
+    {
+    public:
+        /** Creates a continuous range that performs a dummy mapping. */
+        NormalisableRange() = default;
+
+        NormalisableRange(const NormalisableRange&) = default;
+        NormalisableRange& operator= (const NormalisableRange&) = default;
+        NormalisableRange(NormalisableRange&&) = default;
+        NormalisableRange& operator= (NormalisableRange&&) = default;
+
+        /** Creates a NormalisableRange with a given range, interval and skew factor. */
+        NormalisableRange(ValueType rangeStart,
+            ValueType rangeEnd,
+            ValueType intervalValue,
+            ValueType skewFactor,
+            bool useSymmetricSkew = false) noexcept
+            : start(rangeStart), end(rangeEnd), interval(intervalValue),
+            skew(skewFactor), symmetricSkew(useSymmetricSkew)
+        {
+            checkInvariants();
+        }
+
+        /** Creates a NormalisableRange with a given range, continuous interval, but a dummy skew-factor. */
+        NormalisableRange(ValueType rangeStart,
+            ValueType rangeEnd) noexcept
+            : start(rangeStart), end(rangeEnd)
+        {
+            checkInvariants();
+        }
+
+        /** Creates a NormalisableRange with a given range and interval, but a dummy skew-factor. */
+        NormalisableRange(ValueType rangeStart,
+            ValueType rangeEnd,
+            ValueType intervalValue) noexcept
+            : start(rangeStart), end(rangeEnd), interval(intervalValue)
+        {
+            checkInvariants();
+        }
+
+        /** Creates a NormalisableRange with a given range, continuous interval, but a dummy skew-factor. */
+        NormalisableRange(Range<ValueType> range) noexcept
+            : NormalisableRange(range.getStart(), range.getEnd())
+        {
+        }
+
+        /** Creates a NormalisableRange with a given range and interval, but a dummy skew-factor. */
+        NormalisableRange(Range<ValueType> range, ValueType intervalValue) noexcept
+            : NormalisableRange(range.getStart(), range.getEnd(), intervalValue)
+        {
+        }
+
+        /** A function object which can remap a value in some way based on the start and end of a range. */
+        using ValueRemapFunction = std::function<ValueType(ValueType rangeStart,
+            ValueType rangeEnd,
+            ValueType valueToRemap)>;
+
+        /** Creates a NormalisableRange with a given range and an injective mapping function.
+
+            @param rangeStart           The minimum value in the range.
+            @param rangeEnd             The maximum value in the range.
+            @param convertFrom0To1Func  A function which uses the current start and end of this NormalisableRange
+                                        and produces a mapped value from a normalised value.
+            @param convertTo0To1Func    A function which uses the current start and end of this NormalisableRange
+                                        and produces a normalised value from a mapped value.
+            @param snapToLegalValueFunc A function which uses the current start and end of this NormalisableRange
+                                        to take a mapped value and snap it to the nearest legal value.
+        */
+        NormalisableRange(ValueType rangeStart,
+            ValueType rangeEnd,
+            ValueRemapFunction convertFrom0To1Func,
+            ValueRemapFunction convertTo0To1Func,
+            ValueRemapFunction snapToLegalValueFunc = {}) noexcept
+            : start(rangeStart),
+            end(rangeEnd),
+            convertFrom0To1Function(std::move(convertFrom0To1Func)),
+            convertTo0To1Function(std::move(convertTo0To1Func)),
+            snapToLegalValueFunction(std::move(snapToLegalValueFunc))
+        {
+            checkInvariants();
+        }
+
+        /** Uses the properties of this mapping to convert a non-normalised value to
+            its 0->1 representation.
+        */
+        ValueType convertTo0to1(ValueType v) const noexcept
+        {
+            if (convertTo0To1Function != nullptr)
+                return clampTo0To1(convertTo0To1Function(start, end, v));
+
+            auto proportion = clampTo0To1((v - start) / (end - start));
+
+            if (skew == static_cast<ValueType> (1))
+                return proportion;
+
+            if (!symmetricSkew)
+                return std::pow(proportion, skew);
+
+            auto distanceFromMiddle = static_cast<ValueType> (2) * proportion - static_cast<ValueType> (1);
+
+            return (static_cast<ValueType> (1) + std::pow(std::abs(distanceFromMiddle), skew)
+                * (distanceFromMiddle < ValueType() ? static_cast<ValueType> (-1)
+                    : static_cast<ValueType> (1)))
+                / static_cast<ValueType> (2);
+        }
+
+        /** Uses the properties of this mapping to convert a normalised 0->1 value to
+            its full-range representation.
+        */
+        ValueType convertFrom0to1(ValueType proportion) const noexcept
+        {
+            proportion = clampTo0To1(proportion);
+
+            if (convertFrom0To1Function != nullptr)
+                return convertFrom0To1Function(start, end, proportion);
+
+            if (!symmetricSkew)
+            {
+                if (skew != static_cast<ValueType> (1) && proportion > ValueType())
+                    proportion = std::exp(std::log(proportion) / skew);
+
+                return start + (end - start) * proportion;
+            }
+
+            auto distanceFromMiddle = static_cast<ValueType> (2) * proportion - static_cast<ValueType> (1);
+
+            if (skew != static_cast<ValueType> (1) && distanceFromMiddle != static_cast<ValueType> (0))
+                distanceFromMiddle = std::exp(std::log(std::abs(distanceFromMiddle)) / skew)
+                * (distanceFromMiddle < ValueType() ? static_cast<ValueType> (-1)
+                    : static_cast<ValueType> (1));
+
+            return start + (end - start) / static_cast<ValueType> (2) * (static_cast<ValueType> (1) + distanceFromMiddle);
+        }
+
+        /** Takes a non-normalised value and snaps it based on either the interval property of
+            this NormalisableRange or the lambda function supplied to the constructor.
+        */
+        ValueType snapToLegalValue(ValueType v) const noexcept
+        {
+            if (snapToLegalValueFunction != nullptr)
+                return snapToLegalValueFunction(start, end, v);
+
+            if (interval > ValueType())
+                v = start + interval * std::floor((v - start) / interval + static_cast<ValueType> (0.5));
+
+            return (v <= start || end <= start) ? start : (v >= end ? end : v);
+        }
+
+        /** Returns the extent of the normalisable range. */
+        Range<ValueType> getRange() const noexcept { return { start, end }; }
+
+        /** Given a value which is between the start and end points, this sets the skew
+            such that convertFrom0to1 (0.5) will return this value.
+
+            If you have used lambda functions for convertFrom0to1Func and convertFrom0to1Func in the
+            constructor of this class then the skew value is ignored.
+
+            @param centrePointValue  this must be greater than the start of the range and less than the end.
+        */
+        void setSkewForCentre(ValueType centrePointValue) noexcept
+        {
+            jassert(centrePointValue > start);
+            jassert(centrePointValue < end);
+
+            symmetricSkew = false;
+            skew = std::log(static_cast<ValueType> (0.5)) / std::log((centrePointValue - start) / (end - start));
+            checkInvariants();
+        }
+
+        /** The minimum value of the non-normalised range. */
+        ValueType start = 0;
+
+        /** The maximum value of the non-normalised range. */
+        ValueType end = 1;
+
+        /** The snapping interval that should be used (for a non-normalised value). Use 0 for a
+            continuous range.
+
+            If you have used a lambda function for snapToLegalValueFunction in the constructor of
+            this class then the interval is ignored.
+        */
+        ValueType interval = 0;
+
+        /** An optional skew factor that alters the way values are distribute across the range.
+
+            The skew factor lets you skew the mapping logarithmically so that larger or smaller
+            values are given a larger proportion of the available space.
+
+            A factor of 1.0 has no skewing effect at all. If the factor is < 1.0, the lower end
+            of the range will fill more of the slider's length; if the factor is > 1.0, the upper
+            end of the range will be expanded.
+
+            If you have used lambda functions for convertFrom0to1Func and convertFrom0to1Func in the
+            constructor of this class then the skew value is ignored.
+        */
+        ValueType skew = 1;
+
+        /** If true, the skew factor applies from the middle of the slider to each of its ends. */
+        bool symmetricSkew = false;
+
+    private:
+        void checkInvariants() const
+        {
+            jassert(end > start);
+            jassert(interval >= ValueType());
+            jassert(skew > ValueType());
+        }
+
+        static ValueType clampTo0To1(ValueType value)
+        {
+            auto clampedValue = jlimit(static_cast<ValueType> (0), static_cast<ValueType> (1), value);
+
+            // If you hit this assertion then either your normalisation function is not working
+            // correctly or your input is out of the expected bounds.
+            jassert(clampedValue == value);
+
+            return clampedValue;
+        }
+
+        ValueRemapFunction convertFrom0To1Function, convertTo0To1Function, snapToLegalValueFunction;
+    };
+
+} // namespace RAVEWwise
+
+//----------------------------------------------------------------------------------------------------------------------
+
+namespace RAVEWwise
+{
+	// Replacement for juce::SmoothedValue.
+
+    //==============================================================================
+    /**
+        A base class for the smoothed value classes.
+
+        This class is used to provide common functionality to the SmoothedValue and
+        dsp::LogRampedValue classes.
+
+        @tags{Audio}
+    */
+    template <typename SmoothedValueType>
+    class SmoothedValueBase
+    {
+    private:
+        //==============================================================================
+        template <typename T> struct FloatTypeHelper;
+
+        template <template <typename> class SmoothedValueClass, typename FloatType>
+        struct FloatTypeHelper <SmoothedValueClass <FloatType>>
+        {
+            using Type = FloatType;
+        };
+
+        template <template <typename, typename> class SmoothedValueClass, typename FloatType, typename SmoothingType>
+        struct FloatTypeHelper <SmoothedValueClass <FloatType, SmoothingType>>
+        {
+            using Type = FloatType;
+        };
+
+    public:
+        using FloatType = typename FloatTypeHelper<SmoothedValueType>::Type;
+
+        //==============================================================================
+        /** Constructor. */
+        SmoothedValueBase() = default;
+
+        //==============================================================================
+        /** Returns true if the current value is currently being interpolated. */
+        bool isSmoothing() const noexcept { return countdown > 0; }
+
+        /** Returns the current value of the ramp. */
+        FloatType getCurrentValue() const noexcept { return currentValue; }
+
+        //==============================================================================
+        /** Returns the target value towards which the smoothed value is currently moving. */
+        FloatType getTargetValue() const noexcept { return target; }
+
+        /** Sets the current value and the target value.
+            @param newValue    the new value to take
+        */
+        void setCurrentAndTargetValue(FloatType newValue)
+        {
+            target = currentValue = newValue;
+            countdown = 0;
+        }
+
+        //==============================================================================
+        /** Applies a smoothed gain to a stream of samples
+            S[i] *= gain
+            @param samples Pointer to a raw array of samples
+            @param numSamples Length of array of samples
+        */
+        void applyGain(FloatType* samples, int numSamples) noexcept
+        {
+            jassert(numSamples >= 0);
+
+            if (isSmoothing())
+            {
+                for (int i = 0; i < numSamples; ++i)
+                    samples[i] *= getNextSmoothedValue();
+            }
+            else
+            {
+                FloatVectorOperations::multiply(samples, target, numSamples);
+            }
+        }
+
+        /** Computes output as a smoothed gain applied to a stream of samples.
+            Sout[i] = Sin[i] * gain
+            @param samplesOut A pointer to a raw array of output samples
+            @param samplesIn  A pointer to a raw array of input samples
+            @param numSamples The length of the array of samples
+        */
+        void applyGain(FloatType* samplesOut, const FloatType* samplesIn, int numSamples) noexcept
+        {
+            jassert(numSamples >= 0);
+
+            if (isSmoothing())
+            {
+                for (int i = 0; i < numSamples; ++i)
+                    samplesOut[i] = samplesIn[i] * getNextSmoothedValue();
+            }
+            else
+            {
+                FloatVectorOperations::multiply(samplesOut, samplesIn, target, numSamples);
+            }
+        }
+
+        /** Applies a smoothed gain to a buffer */
+        //void applyGain(AudioBuffer<FloatType>& buffer, int numSamples) noexcept
+        //{
+        //    jassert(numSamples >= 0);
+
+        //    if (isSmoothing())
+        //    {
+        //        if (buffer.getNumChannels() == 1)
+        //        {
+        //            auto* samples = buffer.getWritePointer(0);
+
+        //            for (int i = 0; i < numSamples; ++i)
+        //                samples[i] *= getNextSmoothedValue();
+        //        }
+        //        else
+        //        {
+        //            for (auto i = 0; i < numSamples; ++i)
+        //            {
+        //                auto gain = getNextSmoothedValue();
+
+        //                for (int channel = 0; channel < buffer.getNumChannels(); channel++)
+        //                    buffer.setSample(channel, i, buffer.getSample(channel, i) * gain);
+        //            }
+        //        }
+        //    }
+        //    else
+        //    {
+        //        buffer.applyGain(0, numSamples, target);
+        //    }
+        //}
+
+    private:
+        //==============================================================================
+        FloatType getNextSmoothedValue() noexcept
+        {
+            return static_cast <SmoothedValueType*> (this)->getNextValue();
+        }
+
+    protected:
+        //==============================================================================
+        FloatType currentValue = 0;
+        FloatType target = currentValue;
+        int countdown = 0;
+    };
+
+    //==============================================================================
+    /**
+        A namespace containing a set of types used for specifying the smoothing
+        behaviour of the SmoothedValue class.
+
+        For example:
+        @code
+        SmoothedValue<float, ValueSmoothingTypes::Multiplicative> frequency (1.0f);
+        @endcode
+    */
+    namespace ValueSmoothingTypes
+    {
+        /**
+            Used to indicate a linear smoothing between values.
+
+            @tags{Audio}
+        */
+        struct Linear {};
+
+        /**
+            Used to indicate a smoothing between multiplicative values.
+
+            @tags{Audio}
+        */
+        struct Multiplicative {};
+    }
+
+    //==============================================================================
+    /**
+        A utility class for values that need smoothing to avoid audio glitches.
+
+        A ValueSmoothingTypes::Linear template parameter selects linear smoothing,
+        which increments the SmoothedValue linearly towards its target value.
+
+        @code
+        SmoothedValue<float, ValueSmoothingTypes::Linear> yourSmoothedValue;
+        @endcode
+
+        A ValueSmoothingTypes::Multiplicative template parameter selects
+        multiplicative smoothing increments towards the target value.
+
+        @code
+        SmoothedValue<float, ValueSmoothingTypes::Multiplicative> yourSmoothedValue;
+        @endcode
+
+        Multiplicative smoothing is useful when you are dealing with
+        exponential/logarithmic values like volume in dB or frequency in Hz. For
+        example a 12 step ramp from 440.0 Hz (A4) to 880.0 Hz (A5) will increase the
+        frequency with an equal temperament tuning across the octave. A 10 step
+        smoothing from 1.0 (0 dB) to 3.16228 (10 dB) will increase the value in
+        increments of 1 dB.
+
+        Note that when you are using multiplicative smoothing you cannot ever reach a
+        target value of zero!
+
+        @tags{Audio}
+    */
+    template <typename FloatType, typename SmoothingType = ValueSmoothingTypes::Linear>
+    class SmoothedValue : public SmoothedValueBase <SmoothedValue <FloatType, SmoothingType>>
+    {
+    public:
+        //==============================================================================
+        /** Constructor. */
+        SmoothedValue() noexcept
+            : SmoothedValue((FloatType)(std::is_same<SmoothingType, ValueSmoothingTypes::Linear>::value ? 0 : 1))
+        {
+        }
+
+        /** Constructor. */
+        SmoothedValue(FloatType initialValue) noexcept
+        {
+            // Multiplicative smoothed values cannot ever reach 0!
+            jassert(!(std::is_same<SmoothingType, ValueSmoothingTypes::Multiplicative>::value && initialValue == 0));
+
+            // Visual Studio can't handle base class initialisation with CRTP
+            this->currentValue = initialValue;
+            this->target = this->currentValue;
+        }
+
+        //==============================================================================
+        /** Reset to a new sample rate and ramp length.
+            @param sampleRate           The sample rate
+            @param rampLengthInSeconds  The duration of the ramp in seconds
+        */
+        void reset(double sampleRate, double rampLengthInSeconds) noexcept
+        {
+            jassert(sampleRate > 0 && rampLengthInSeconds >= 0);
+            reset((int)std::floor(rampLengthInSeconds * sampleRate));
+        }
+
+        /** Set a new ramp length directly in samples.
+            @param numSteps     The number of samples over which the ramp should be active
+        */
+        void reset(int numSteps) noexcept
+        {
+            stepsToTarget = numSteps;
+            this->setCurrentAndTargetValue(this->target);
+        }
+
+        //==============================================================================
+        /** Set the next value to ramp towards.
+            @param newValue     The new target value
+        */
+        void setTargetValue(FloatType newValue) noexcept
+        {
+            if (newValue == this->target)
+                return;
+
+            if (stepsToTarget <= 0)
+            {
+                this->setCurrentAndTargetValue(newValue);
+                return;
+            }
+
+            // Multiplicative smoothed values cannot ever reach 0!
+            jassert(!(std::is_same<SmoothingType, ValueSmoothingTypes::Multiplicative>::value && newValue == 0));
+
+            this->target = newValue;
+            this->countdown = stepsToTarget;
+
+            setStepSize();
+        }
+
+        //==============================================================================
+        /** Compute the next value.
+            @returns Smoothed value
+        */
+        FloatType getNextValue() noexcept
+        {
+            if (!this->isSmoothing())
+                return this->target;
+
+            --(this->countdown);
+
+            if (this->isSmoothing())
+                setNextValue();
+            else
+                this->currentValue = this->target;
+
+            return this->currentValue;
+        }
+
+        //==============================================================================
+        /** Skip the next numSamples samples.
+            This is identical to calling getNextValue numSamples times. It returns
+            the new current value.
+            @see getNextValue
+        */
+        FloatType skip(int numSamples) noexcept
+        {
+            if (numSamples >= this->countdown)
+            {
+                this->setCurrentAndTargetValue(this->target);
+                return this->target;
+            }
+
+            skipCurrentValue(numSamples);
+
+            this->countdown -= numSamples;
+            return this->currentValue;
+        }
+
+        //==============================================================================
+#ifndef DOXYGEN
+ /** Using the new methods:
+
+     lsv.setValue (x, false); -> lsv.setTargetValue (x);
+     lsv.setValue (x, true);  -> lsv.setCurrentAndTargetValue (x);
+
+     @param newValue     The new target value
+     @param force        If true, the value will be set immediately, bypassing the ramp
+ */
+        [[deprecated("Use setTargetValue and setCurrentAndTargetValue instead.")]]
+        void setValue(FloatType newValue, bool force = false) noexcept
+        {
+            if (force)
+            {
+                this->setCurrentAndTargetValue(newValue);
+                return;
+            }
+
+            setTargetValue(newValue);
+        }
+#endif
+
+    private:
+        //==============================================================================
+        template <typename T>
+        using LinearVoid = typename std::enable_if <std::is_same <T, ValueSmoothingTypes::Linear>::value, void>::type;
+
+        template <typename T>
+        using MultiplicativeVoid = typename std::enable_if <std::is_same <T, ValueSmoothingTypes::Multiplicative>::value, void>::type;
+
+        //==============================================================================
+        template <typename T = SmoothingType>
+        LinearVoid<T> setStepSize() noexcept
+        {
+            step = (this->target - this->currentValue) / (FloatType)this->countdown;
+        }
+
+        template <typename T = SmoothingType>
+        MultiplicativeVoid<T> setStepSize()
+        {
+            step = std::exp((std::log(std::abs(this->target)) - std::log(std::abs(this->currentValue))) / (FloatType)this->countdown);
+        }
+
+        //==============================================================================
+        template <typename T = SmoothingType>
+        LinearVoid<T> setNextValue() noexcept
+        {
+            this->currentValue += step;
+        }
+
+        template <typename T = SmoothingType>
+        MultiplicativeVoid<T> setNextValue() noexcept
+        {
+            this->currentValue *= step;
+        }
+
+        //==============================================================================
+        template <typename T = SmoothingType>
+        LinearVoid<T> skipCurrentValue(int numSamples) noexcept
+        {
+            this->currentValue += step * (FloatType)numSamples;
+        }
+
+        template <typename T = SmoothingType>
+        MultiplicativeVoid<T> skipCurrentValue(int numSamples)
+        {
+            this->currentValue *= (FloatType)std::pow(step, numSamples);
+        }
+
+        //==============================================================================
+        FloatType step = FloatType();
+        int stepsToTarget = 0;
+    };
+
+    template <typename FloatType>
+    using LinearSmoothedValue = SmoothedValue <FloatType, ValueSmoothingTypes::Linear>;
+
+} // namespace RAVEWwise
+
+//----------------------------------------------------------------------------------------------------------------------
+
 #define EPSILON 0.0000001
 #define DEBUG 0
 
@@ -68,11 +704,10 @@ namespace rave_parameters {
 	const std::string prior_temperature{ "prior_temperature" };
 } // namespace rave_parameters
 
-// TODO: Replace juce::NormalisableRange with custom implementation
 namespace rave_ranges {
-	const juce::NormalisableRange<float> gainRange(-70.f, 12.f);
-	const juce::NormalisableRange<float> latentScaleRange(0.0f, 5.0f);
-	const juce::NormalisableRange<float> latentBiasRange(-3.0f, 3.0f);
+	const RAVEWwise::NormalisableRange<float> gainRange(-70.f, 12.f);
+	const RAVEWwise::NormalisableRange<float> latentScaleRange(0.0f, 5.0f);
+	const RAVEWwise::NormalisableRange<float> latentBiasRange(-3.0f, 3.0f);
 } // namespace rave_ranges
 
 
@@ -199,9 +834,9 @@ private:
     enum class muting : int { ignore = 0, mute, unmute };
 
     std::atomic<muting> _fadeScheduler{ muting::mute };
-    juce::LinearSmoothedValue<float> _smoothedFadeInOut;
-    juce::LinearSmoothedValue<float> _smoothedWetGain;
-    juce::LinearSmoothedValue<float> _smoothedDryGain;
+    RAVEWwise::LinearSmoothedValue<float> _smoothedFadeInOut;
+    RAVEWwise::LinearSmoothedValue<float> _smoothedWetGain;
+    RAVEWwise::LinearSmoothedValue<float> _smoothedDryGain;
 
     // TODO
     // DSP effect
