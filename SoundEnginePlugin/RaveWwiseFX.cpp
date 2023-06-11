@@ -30,7 +30,7 @@ the specific language governing permissions and limitations under the License.
 #include <AK/AkWwiseSDKVersion.h>
 
 #include <algorithm>
-#include <math.h>
+#include <cmath>
 
 #define DEBUG_PERFORM 0
 
