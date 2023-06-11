@@ -813,6 +813,7 @@ private:
     float* _inFifoBuffer{ nullptr };
     float* _outFifoBuffer{ nullptr };
 
+    // TODO: Re-type these from std::atomic<float>* to std::atomic<float>
     std::atomic<float>* _inputGainValue;
     std::atomic<float>* _thresholdValue;
     std::atomic<float>* _ratioValue;
@@ -823,7 +824,7 @@ private:
     std::atomic<float>* _limitValue;
     std::atomic<float>* _channelMode;
     // latency mode contains the power of 2 of the current refresh rate.
-    std::atomic<float>* _latencyMode;
+    std::atomic<float>* _latencyMode; // { 13 }; // min = 9, max = 15, default = 13
     std::atomic<float>* _usePrior;
     std::atomic<float>* _priorTemperature;
 

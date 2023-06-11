@@ -326,7 +326,20 @@ void RaveWwiseFX::unmute()
 
 void RaveWwiseFX::updateBufferSizes()
 {
-	// TODO
+    auto validBufferSizes = _rave->getValidBufferSizes();
+    float a = validBufferSizes.start;
+    float b = validBufferSizes.end;
+
+    if (*_latencyMode < a) {
+        std::cout << "too low; setting rate to : " << static_cast<int>(log2(a))
+            << std::endl;
+        *_latencyMode = static_cast<int>(log2(a));
+    }
+    else if (*_latencyMode > b) {
+        std::cout << "too high; setting rate to : " << static_cast<int>(log2(b))
+            << std::endl;
+        *_latencyMode = static_cast<int>(log2(b));
+    }
 }
 
 void RaveWwiseFX::updateEngine(const std::string& modelFile)
