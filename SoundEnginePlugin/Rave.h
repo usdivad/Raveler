@@ -1,6 +1,5 @@
 #pragma once
 #include <string>
-#include <JuceHeader.h>
 #include <torch/script.h>
 #include <torch/torch.h>
 

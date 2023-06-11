@@ -34,6 +34,7 @@ the specific language governing permissions and limitations under the License.
 #include "Rave.h"
 
 #include <algorithm>
+#include <cassert>
 #include <mutex>
 #include <string>
 #include <thread>
@@ -41,7 +42,6 @@ the specific language governing permissions and limitations under the License.
 
 #include <torch/script.h>
 #include <torch/torch.h>
-#include <JuceHeader.h>
 #include <BS_thread_pool.hpp>
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -225,8 +225,8 @@ namespace RAVEWwise
         */
         void setSkewForCentre(ValueType centrePointValue) noexcept
         {
-            jassert(centrePointValue > start);
-            jassert(centrePointValue < end);
+            assert(centrePointValue > start);
+            assert(centrePointValue < end);
 
             symmetricSkew = false;
             skew = std::log(static_cast<ValueType> (0.5)) / std::log((centrePointValue - start) / (end - start));
@@ -267,9 +267,9 @@ namespace RAVEWwise
     private:
         void checkInvariants() const
         {
-            jassert(end > start);
-            jassert(interval >= ValueType());
-            jassert(skew > ValueType());
+            assert(end > start);
+            assert(interval >= ValueType());
+            assert(skew > ValueType());
         }
 
         static ValueType clampTo0To1(ValueType value)
@@ -278,7 +278,7 @@ namespace RAVEWwise
 
             // If you hit this assertion then either your normalisation function is not working
             // correctly or your input is out of the expected bounds.
-            jassert(clampedValue == value);
+            assert(clampedValue == value);
 
             return clampedValue;
         }
@@ -357,7 +357,7 @@ namespace RAVEWwise
         */
         void applyGain(FloatType* samples, int numSamples) noexcept
         {
-            jassert(numSamples >= 0);
+            assert(numSamples >= 0);
 
             if (isSmoothing())
             {
@@ -378,7 +378,7 @@ namespace RAVEWwise
         */
         void applyGain(FloatType* samplesOut, const FloatType* samplesIn, int numSamples) noexcept
         {
-            jassert(numSamples >= 0);
+            assert(numSamples >= 0);
 
             if (isSmoothing())
             {
@@ -394,7 +394,7 @@ namespace RAVEWwise
         /** Applies a smoothed gain to a buffer */
         //void applyGain(AudioBuffer<FloatType>& buffer, int numSamples) noexcept
         //{
-        //    jassert(numSamples >= 0);
+        //    assert(numSamples >= 0);
 
         //    if (isSmoothing())
         //    {
@@ -508,7 +508,7 @@ namespace RAVEWwise
         SmoothedValue(FloatType initialValue) noexcept
         {
             // Multiplicative smoothed values cannot ever reach 0!
-            jassert(!(std::is_same<SmoothingType, ValueSmoothingTypes::Multiplicative>::value && initialValue == 0));
+            assert(!(std::is_same<SmoothingType, ValueSmoothingTypes::Multiplicative>::value && initialValue == 0));
 
             // Visual Studio can't handle base class initialisation with CRTP
             this->currentValue = initialValue;
@@ -522,7 +522,7 @@ namespace RAVEWwise
         */
         void reset(double sampleRate, double rampLengthInSeconds) noexcept
         {
-            jassert(sampleRate > 0 && rampLengthInSeconds >= 0);
+            assert(sampleRate > 0 && rampLengthInSeconds >= 0);
             reset((int)std::floor(rampLengthInSeconds * sampleRate));
         }
 
@@ -551,7 +551,7 @@ namespace RAVEWwise
             }
 
             // Multiplicative smoothed values cannot ever reach 0!
-            jassert(!(std::is_same<SmoothingType, ValueSmoothingTypes::Multiplicative>::value && newValue == 0));
+            assert(!(std::is_same<SmoothingType, ValueSmoothingTypes::Multiplicative>::value && newValue == 0));
 
             this->target = newValue;
             this->countdown = stepsToTarget;
