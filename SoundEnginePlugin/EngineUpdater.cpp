@@ -1,55 +1,22 @@
 #include "EngineUpdater.h"
 
+#include <chrono>
+#include <thread>
+
 #include "RaveWwiseFX.h"
 
 namespace RAVEWwise
 {
-	void UpdateEngineJob(RaveWwiseFX* processor, const std::string& modelFile)
+	void UpdateEngineJob(RaveWwiseFX* processor, const std::string& modelFile, size_t fadeOutWaitTimeMs /* 0 */)
 	{
-		// TODO: waitForFadeOut()?
+		// Wait for fade out
+		for (size_t i = 0; i < fadeOutWaitTimeMs && processor->getIsMuted(); ++i) {
+			std::this_thread::sleep_for(std::chrono::milliseconds(1));
+		}
 
+		// Update engine
 		processor->_rave->load_model(modelFile);
 		processor->updateBufferSizes();
 		processor->unmute();
 	}
 }
-
-//UpdateEngineJob::UpdateEngineJob(RaveWwiseFX& processor, const std::string modelFile)
-//	: ThreadPoolJob("UpdateEngineJob"), mProcessor(processor),
-//	mModelFile(modelFile) {}
-//
-//UpdateEngineJob::~UpdateEngineJob() {}
-//
-//bool UpdateEngineJob::waitForFadeOut(size_t waitTimeMs) {
-//	// TODO
-//	//for (size_t i = 0; i < waitTimeMs && mProcessor.getIsMuted(); ++i) {
-//	//  juce::Thread::sleep(1);
-//	//}
-//	//return (mProcessor.getIsMuted());
-//
-//	return false;
-//}
-//
-//auto UpdateEngineJob::runJob() -> JobStatus {
-//	if (shouldExit()) {
-//		return JobStatus::jobNeedsRunningAgain;
-//	}
-//
-//	// TODO
-//	//mProcessor.mute();
-//
-//	while (!waitForFadeOut(1)) {
-//		if (shouldExit()) {
-//			return JobStatus::jobNeedsRunningAgain;
-//		}
-//	}
-//
-//	// TODO
-//	//mProcessor._rave->load_model(mModelFile);
-//	//mProcessor.updateBufferSizes();
-//	//mProcessor.unmute();
-//
-//	DBG("Job finished");
-//
-//	return JobStatus::jobHasFinished;
-//}

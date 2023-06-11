@@ -765,7 +765,7 @@ public:
 
 	void mute();
 	void unmute();
-    bool getIsMuted() const { return _isMuted; }
+    bool getIsMuted() const { return _isMuted.load(); }
 	
     void updateBufferSizes();
 

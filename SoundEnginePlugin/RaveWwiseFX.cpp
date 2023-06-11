@@ -345,5 +345,5 @@ void RaveWwiseFX::updateEngine(const std::string& modelFile)
         _engineThreadPool->purge();
     }
 
-    std::future<void> engineUpdateFuture = _engineThreadPool->submit(RAVEWwise::UpdateEngineJob, this, modelFile);
+    std::future<void> engineUpdateFuture = _engineThreadPool->submit(RAVEWwise::UpdateEngineJob, this, modelFile, 1);
 }
