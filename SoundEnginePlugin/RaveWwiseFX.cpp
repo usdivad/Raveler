@@ -316,12 +316,12 @@ void RaveWwiseFX::detectAvailableModels()
 
 void RaveWwiseFX::mute()
 {
-	// TODO
+    _fadeScheduler.store(muting::mute);
 }
 
 void RaveWwiseFX::unmute()
 {
-	// TODO
+    _fadeScheduler.store(muting::unmute);
 }
 
 void RaveWwiseFX::updateBufferSizes()
