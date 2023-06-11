@@ -1,6 +1,8 @@
 # RAVE Wwise
 
-Wwise port of the [RAVE VST](https://github.com/acids-ircam/rave_vst) plugin.
+Wwise plugin that runs [RAVE](https://github.com/acids-ircam/RAVE) models.
+
+Based on the [rave_vst](https://github.com/acids-ircam/rave_vst) project.
 
 
 ## Setup
