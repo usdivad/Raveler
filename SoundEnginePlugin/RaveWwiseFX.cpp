@@ -68,13 +68,13 @@ RaveWwiseFX::RaveWwiseFX()
 
     // TODO: Initialize _inputGainValue through _priorTemperature
 
-    // TODO: Initialize internal values
-    _latentScale = new std::array<std::atomic<float>*, AVAILABLE_DIMS>;
-    _latentBias = new std::array<std::atomic<float>*, AVAILABLE_DIMS>;
+    // TODO: Initialize internal values of arrays
+    //_latentScale = std::array<std::atomic<float>, AVAILABLE_DIMS>();
+    //_latentBias = std::array<std::atomic<float>, AVAILABLE_DIMS>();
     
     _engineThreadPool = std::make_unique<BS::thread_pool>(1);
     
-    _rave.reset(new RAVE());
+    _rave.reset(new RAVE()); // TODO: Use m_pAllocator in Init()
 
     // TODO: Parameter listener equivalents
 
@@ -178,21 +178,21 @@ void RaveWwiseFX::modelPerform()
     if (_rave.get() && !_isMuted.load()) {
         c10::InferenceMode guard(true);
         // encode
-        int input_size = static_cast<int>(pow(2, *_latencyMode));
+        int input_size = static_cast<int>(pow(2, _latencyMode));
 
         at::Tensor latent_traj;
         at::Tensor latent_traj_mean;
 
 #if DEBUG_PERFORM
-        std::cout << "exp: " << *_latencyMode << " value: " << input_size << '\n';
+        std::cout << "exp: " << _latencyMode << " value: " << input_size << '\n';
         std::cout << "has prior : " << _rave->hasPrior()
-            << "; use prior : " << *_usePrior << std::endl;
-        std::cout << "temperature : " << *_priorTemperature << std::endl;
+            << "; use prior : " << _usePrior << std::endl;
+        std::cout << "temperature : " << _priorTemperature << std::endl;
 #endif
 
-        if (_rave->hasPrior() && *_usePrior) {
-            auto n_trajs = pow(2, *_latencyMode) / _rave->getModelRatio();
-            latent_traj = _rave->sample_prior((int)n_trajs, *_priorTemperature);
+        if (_rave->hasPrior() && _usePrior) {
+            auto n_trajs = pow(2, _latencyMode) / _rave->getModelRatio();
+            latent_traj = _rave->sample_prior((int)n_trajs, _priorTemperature);
             latent_traj_mean = latent_traj;
         }
         else {
@@ -231,8 +231,8 @@ void RaveWwiseFX::modelPerform()
             // Whatever AVAILABLE_DIMS type I defined
             assert(i >= 0);
             auto i2 = (long unsigned int)i;
-            float scale = _latentScale->at(i2)->load();
-            float bias = _latentBias->at(i2)->load();
+            float scale = _latentScale.at(i2).load();
+            float bias = _latentBias.at(i2).load();
             latent_traj.index_put_({ 0, i },
                 (latent_traj.index({ 0, i }) * scale + bias));
             latent_traj_mean.index_put_(
@@ -245,7 +245,7 @@ void RaveWwiseFX::modelPerform()
 #endif
 
         // adding latent jitter on meaningful dimensions
-        float jitter_amount = _latentJitterValue->load();
+        float jitter_amount = _latentJitterValue.load();
         latent_traj = latent_traj + jitter_amount * torch::randn_like(latent_traj);
 
 #if DEBUG_PERFORM
@@ -256,7 +256,7 @@ void RaveWwiseFX::modelPerform()
         torch::Tensor latent_trajL = latent_traj,
             latent_trajR = latent_traj.clone();
         int missing_dims = _rave->getFullLatentDimensions() - latent_trajL.size(1);
-        float width = _widthValue->load() / 100.f;
+        float width = _widthValue.load() / 100.f;
         at::Tensor latent_noiseL =
             torch::randn({ 1, missing_dims, latent_trajL.size(2) });
         at::Tensor latent_noiseR =
@@ -330,15 +330,15 @@ void RaveWwiseFX::updateBufferSizes()
     float a = validBufferSizes.start;
     float b = validBufferSizes.end;
 
-    if (*_latencyMode < a) {
+    if (_latencyMode < a) {
         std::cout << "too low; setting rate to : " << static_cast<int>(log2(a))
             << std::endl;
-        *_latencyMode = static_cast<int>(log2(a));
+        _latencyMode = static_cast<int>(log2(a));
     }
-    else if (*_latencyMode > b) {
+    else if (_latencyMode > b) {
         std::cout << "too high; setting rate to : " << static_cast<int>(log2(b))
             << std::endl;
-        *_latencyMode = static_cast<int>(log2(b));
+        _latencyMode = static_cast<int>(log2(b));
     }
 }
 

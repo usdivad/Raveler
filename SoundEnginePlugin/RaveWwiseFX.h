@@ -777,75 +777,72 @@ public:
     //------------------------------------------------------------------------------------------------------------------
     // RaveAP variables
 
-    std::unique_ptr<RAVE> _rave;
-    float _inputAmplitudeL;
-    float _inputAmplitudeR;
-    float _outputAmplitudeL;
-    float _outputAmplitudeR;
-    bool _plays = false;
+    std::unique_ptr<RAVE> _rave { nullptr };
+    float _inputAmplitudeL { 0.f };
+    float _inputAmplitudeR { 0.f };
+    float _outputAmplitudeL { 0.f };
+    float _outputAmplitudeR { 0.f };
+    bool _plays { false };
 
 private:
     //------------------------------------------------------------------------------------------------------------------
 
-    RaveWwiseFXParams* m_pParams;
-    AK::IAkPluginMemAlloc* m_pAllocator;
-    AK::IAkEffectPluginContext* m_pContext;
+    RaveWwiseFXParams* m_pParams { nullptr };
+    AK::IAkPluginMemAlloc* m_pAllocator { nullptr };
+    AK::IAkEffectPluginContext* m_pContext { nullptr };
 
     //------------------------------------------------------------------------------------------------------------------
 	// RaveAP variables
 
-    std::mutex _engineUpdateMutex;
-    std::unique_ptr<BS::thread_pool> _engineThreadPool;
-    std::string _loadedModelName;
+    std::mutex _engineUpdateMutex { };
+    std::unique_ptr<BS::thread_pool> _engineThreadPool { nullptr };
+    std::string _loadedModelName { };
 
-    /*
-     *Allocate some memory to use as the circular_buffer storage
-     *for each of the circular_buffer types to be created
-     */
-    double _sampleRate = 0;
-    std::unique_ptr<circular_buffer<float, float>[]> _inBuffer;
-    std::unique_ptr<circular_buffer<float, float>[]> _outBuffer;
-    std::vector<std::unique_ptr<float[]>> _inModel, _outModel;
-    std::unique_ptr<std::thread> _computeThread;
+    // Allocate some memory to use as the circular_buffer storage for each of the circular_buffer types to be created
+    double _sampleRate { 0.0 };
+    std::unique_ptr<circular_buffer<float, float>[]> _inBuffer { nullptr };
+    std::unique_ptr<circular_buffer<float, float>[]> _outBuffer { nullptr };
+    std::vector<std::unique_ptr<float[]>> _inModel { }, _outModel { };
+    std::unique_ptr<std::thread> _computeThread { nullptr };
 
-    bool _editorReady;
+    bool _editorReady { false };
 
-    float* _inFifoBuffer{ nullptr };
-    float* _outFifoBuffer{ nullptr };
+    float* _inFifoBuffer { nullptr };
+    float* _outFifoBuffer { nullptr };
 
-    // TODO: Re-type these from std::atomic<float>* to std::atomic<float>
-    std::atomic<float>* _inputGainValue;
-    std::atomic<float>* _thresholdValue;
-    std::atomic<float>* _ratioValue;
-    std::atomic<float>* _latentJitterValue;
-    std::atomic<float>* _widthValue;
-    std::atomic<float>* _outputGainValue;
-    std::atomic<float>* _dryWetValue;
-    std::atomic<float>* _limitValue;
-    std::atomic<float>* _channelMode;
-    // latency mode contains the power of 2 of the current refresh rate.
-    std::atomic<float>* _latencyMode; // { 13 }; // min = 9, max = 15, default = 13
-    std::atomic<float>* _usePrior;
-    std::atomic<float>* _priorTemperature;
+    std::atomic<float> _inputGainValue { 0.f }; // range = rave_ranges::gainRange, default = 0
+    std::atomic<float> _thresholdValue { 0.f }; // min = -60, max = 0, default = 0
+    std::atomic<float> _ratioValue { 1.f }; // min = 1, max = 10, default = 1
+    std::atomic<float> _latentJitterValue { 0.f }; // min = 0, max = 3, default = 0
+    std::atomic<float> _widthValue { 100.f }; // min = 0, max = 200, default = 100
+    std::atomic<float> _outputGainValue { 0.f }; // range = rave_ranges::gainRange, default = 0
+    std::atomic<float> _dryWetValue { 100.f }; // min = 0, max = 100, default = 100
+    std::atomic<float> _limitValue { 1.f }; // bool behavior, default = true
+    std::atomic<float> _channelMode { 1.f }; // min = 1, max = 3, default = 1
 
-    std::array<std::atomic<float>*, AVAILABLE_DIMS>* _latentScale;
-    std::array<std::atomic<float>*, AVAILABLE_DIMS>* _latentBias;
-    std::atomic<bool> _isMuted{ true };
+    // Latency mode contains the power of 2 of the current refresh rate.
+    std::atomic<float> _latencyMode { 13 }; // min = 9, max = 15, default = 13
+    
+    std::atomic<float> _usePrior { 0.f }; // bool behavior, default = false
+    std::atomic<float> _priorTemperature { 1.f }; // min = 0, max = 5, default = 1
+
+    std::array<std::atomic<float>, AVAILABLE_DIMS> _latentScale { };
+    std::array<std::atomic<float>, AVAILABLE_DIMS> _latentBias { };
+    std::atomic<bool> _isMuted { true };
 
     enum class muting : int { ignore = 0, mute, unmute };
 
     std::atomic<muting> _fadeScheduler{ muting::mute };
-    RAVEWwise::LinearSmoothedValue<float> _smoothedFadeInOut;
-    RAVEWwise::LinearSmoothedValue<float> _smoothedWetGain;
-    RAVEWwise::LinearSmoothedValue<float> _smoothedDryGain;
+    RAVEWwise::LinearSmoothedValue<float> _smoothedFadeInOut { };
+    RAVEWwise::LinearSmoothedValue<float> _smoothedWetGain { };
+    RAVEWwise::LinearSmoothedValue<float> _smoothedDryGain { };
 
-    // TODO
-    // DSP effect
-    //juce::dsp::Compressor<float> _compressorEffect;
-    //juce::dsp::Gain<float> _inputGainEffect;
-    //juce::dsp::Gain<float> _outputGainEffect;
-    //juce::dsp::Limiter<float> _limiterEffect;
-    //juce::dsp::DryWetMixer<float> _dryWetMixerEffect;
+    // TODO: DSP effects
+    // - Compressor
+    // - Input gain
+    // - Output gain
+    // - Limiter
+    // - Dry/wet mixer
 };
 
 #endif // RaveWwiseFX_H
