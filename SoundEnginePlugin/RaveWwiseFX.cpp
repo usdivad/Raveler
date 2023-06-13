@@ -32,7 +32,7 @@ the specific language governing permissions and limitations under the License.
 #include <algorithm>
 #include <cmath>
 
-#define DEBUG_PERFORM 0
+#define DEBUG_PERFORM 1
 
 AK::IAkPlugin* CreateRaveWwiseFX(AK::IAkPluginMemAlloc* in_pAllocator)
 {
@@ -178,10 +178,30 @@ void RaveWwiseFX::modelPerform()
         at::Tensor latent_traj_mean;
 
 #if DEBUG_PERFORM
+		AKPLATFORM::OutputDebugMsg("\n");
+        AKPLATFORM::OutputDebugMsg("modelPerform():");
+		AKPLATFORM::OutputDebugMsg("\n");
+
         std::cout << "exp: " << _latencyMode << " value: " << input_size << '\n';
+		AKPLATFORM::OutputDebugMsg("Latency mode exponent: ");
+		AKPLATFORM::OutputDebugMsg(std::to_string(_latencyMode).c_str());
+		AKPLATFORM::OutputDebugMsg(", Input size value: ");
+		AKPLATFORM::OutputDebugMsg(std::to_string(input_size).c_str());
+		AKPLATFORM::OutputDebugMsg("\n");
+
+
         std::cout << "has prior : " << _rave->hasPrior()
             << "; use prior : " << _usePrior << std::endl;
+		AKPLATFORM::OutputDebugMsg("Has prior: ");
+		AKPLATFORM::OutputDebugMsg(std::to_string(_rave->hasPrior()).c_str());
+		AKPLATFORM::OutputDebugMsg(", Use prior: ");
+		AKPLATFORM::OutputDebugMsg(std::to_string(_usePrior).c_str());
+		AKPLATFORM::OutputDebugMsg("\n");
+
         std::cout << "temperature : " << _priorTemperature << std::endl;
+		AKPLATFORM::OutputDebugMsg("Prior temperature: ");
+		AKPLATFORM::OutputDebugMsg(std::to_string(_priorTemperature).c_str());
+		AKPLATFORM::OutputDebugMsg("\n");
 #endif
 
         if (_rave->hasPrior() && _usePrior) {
@@ -324,14 +344,35 @@ void RaveWwiseFX::updateBufferSizes()
     float a = validBufferSizes.start;
     float b = validBufferSizes.end;
 
-    if (_latencyMode < a) {
+	AKPLATFORM::OutputDebugMsg("\n");
+	AKPLATFORM::OutputDebugMsg("updateBufferSizes(): ");
+	AKPLATFORM::OutputDebugMsg("\n");
+
+	AKPLATFORM::OutputDebugMsg("Initial latency mode: ");
+	AKPLATFORM::OutputDebugMsg(std::to_string(_latencyMode).c_str());
+	AKPLATFORM::OutputDebugMsg(" -- valid buffer sizes range from ");
+	AKPLATFORM::OutputDebugMsg(std::to_string(a).c_str());
+	AKPLATFORM::OutputDebugMsg(" to ");
+	AKPLATFORM::OutputDebugMsg(std::to_string(b).c_str());
+	AKPLATFORM::OutputDebugMsg("\n");
+
+    if (_latencyMode < a)
+    {
         std::cout << "too low; setting rate to : " << static_cast<int>(log2(a))
             << std::endl;
+		AKPLATFORM::OutputDebugMsg("Latency mode too low; setting rate to: ");
+		AKPLATFORM::OutputDebugMsg(std::to_string(log2(a)).c_str());
+		AKPLATFORM::OutputDebugMsg("\n");
+
         _latencyMode = static_cast<int>(log2(a));
     }
     else if (_latencyMode > b) {
         std::cout << "too high; setting rate to : " << static_cast<int>(log2(b))
             << std::endl;
+		AKPLATFORM::OutputDebugMsg("Latency mode too high; setting rate to: ");
+		AKPLATFORM::OutputDebugMsg(std::to_string(log2(b)).c_str());
+		AKPLATFORM::OutputDebugMsg("\n");
+
         _latencyMode = static_cast<int>(log2(b));
     }
 }
