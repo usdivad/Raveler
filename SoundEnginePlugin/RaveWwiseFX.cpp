@@ -65,12 +65,6 @@ RaveWwiseFX::RaveWwiseFX()
     _inModel.push_back(std::make_unique<float[]>(BUFFER_LENGTH));
     _outModel.push_back(std::make_unique<float[]>(BUFFER_LENGTH));
     _outModel.push_back(std::make_unique<float[]>(BUFFER_LENGTH));
-
-    // TODO: Initialize _inputGainValue through _priorTemperature
-
-    // TODO: Initialize internal values of arrays
-    //_latentScale = std::array<std::atomic<float>, AVAILABLE_DIMS>();
-    //_latentBias = std::array<std::atomic<float>, AVAILABLE_DIMS>();
     
     _engineThreadPool = std::make_unique<BS::thread_pool>(1);
     
