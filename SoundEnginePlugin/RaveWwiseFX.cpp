@@ -34,6 +34,11 @@ the specific language governing permissions and limitations under the License.
 
 #define DEBUG_PERFORM 1
 
+namespace RAVEWwise
+{
+	void modelPerform_callback(RaveWwiseFX* ap) { ap->modelPerform(); }
+}
+
 AK::IAkPlugin* CreateRaveWwiseFX(AK::IAkPluginMemAlloc* in_pAllocator)
 {
     return AK_PLUGIN_NEW(in_pAllocator, RaveWwiseFX());
@@ -158,6 +163,68 @@ void RaveWwiseFX::Execute(AkAudioBuffer* in_pBuffer, AkUInt32 in_ulnOffset, AkAu
         out_pBuffer->eState = AK_DataReady;
     else
         out_pBuffer->eState = AK_DataNeeded;
+
+
+	// ----------------------------------------------------------------
+
+	const int nSamples = in_pBuffer->uValidFrames;
+	const int nChannels = (const int)uNumChannels;
+
+	//juce::String channelMode =
+	//	channel_modes[static_cast<int>(_channelMode->load()) - 1];
+	//if (channelMode == "L") {
+	//	_inBuffer[0].put(channelL, nSamples);
+	//}
+	//else if (channelMode == "R") {
+	//	_inBuffer[0].put(channelR, nSamples);
+	//}
+	//else if (channelMode == "L + R") {
+	//	FloatVectorOperations::add(channelL, channelR, nSamples);
+	//	FloatVectorOperations::multiply(channelL, 0.5f, nSamples);
+	//	_inBuffer[0].put(channelL, nSamples);
+	//}
+
+	// Create processing thread
+	int currentRefreshRate = pow(2, _latencyMode);
+	if (_inBuffer[0].len() >= currentRefreshRate) {
+		if (_computeThread) {
+
+#if DEBUG_PERFORM
+			std::cout << "joining..." << std::endl;
+#endif
+
+			_computeThread->join();
+		}
+		_inBuffer[0].get(_inModel[0].get(), currentRefreshRate);
+		_outBuffer[0].put(_outModel[0].get(), currentRefreshRate);
+		_outBuffer[1].put(_outModel[1].get(), currentRefreshRate);
+		_computeThread = std::make_unique<std::thread>(RAVEWwise::modelPerform_callback, this);
+	}
+
+//	AudioBuffer<float> out_buffer(2, nSamples);
+//	juce::dsp::AudioBlock<float> out_ab(out_buffer);
+//	juce::dsp::ProcessContextReplacing<float> out_context(out_ab);
+//	if (_outBuffer[0].len() >= nSamples) {
+//		_outBuffer[0].get(out_buffer.getWritePointer(0), nSamples);
+//		_outBuffer[1].get(out_buffer.getWritePointer(1), nSamples);
+//	}
+//	else {
+//		out_buffer.clear();
+//	}
+//
+//#if DEBUG
+//	std::cout << "buffer out : " << out_buffer.getMagnitude(0, nSamples)
+//		<< std::endl;
+//#endif
+//
+//	buffer.copyFrom(0, 0, out_buffer, 0, 0, nSamples);
+//	if (nChannels == 2)
+//		buffer.copyFrom(1, 0, out_buffer, 1, 0, nSamples);
+//
+//
+//#if DEBUG_PERFORM
+//	std::cout << "sortie : " << buffer.getMagnitude(0, nSamples) << std::endl;
+//#endif
 }
 
 AKRESULT RaveWwiseFX::TimeSkip(AkUInt32 &io_uFrames)
@@ -320,9 +387,6 @@ void RaveWwiseFX::modelPerform()
     }
 }
 
-void modelPerform_callback(RaveWwiseFX* ap) { ap->modelPerform(); }
-
-
 void RaveWwiseFX::detectAvailableModels()
 {
 	// TODO
@@ -356,7 +420,8 @@ void RaveWwiseFX::updateBufferSizes()
 	AKPLATFORM::OutputDebugMsg(std::to_string(b).c_str());
 	AKPLATFORM::OutputDebugMsg("\n");
 
-    if (_latencyMode < a)
+    const float bufferSize = pow(2, _latencyMode);
+    if (bufferSize < a)
     {
         std::cout << "too low; setting rate to : " << static_cast<int>(log2(a))
             << std::endl;
@@ -366,7 +431,8 @@ void RaveWwiseFX::updateBufferSizes()
 
         _latencyMode = static_cast<int>(log2(a));
     }
-    else if (_latencyMode > b) {
+    else if (bufferSize > b)
+    {
         std::cout << "too high; setting rate to : " << static_cast<int>(log2(b))
             << std::endl;
 		AKPLATFORM::OutputDebugMsg("Latency mode too high; setting rate to: ");
