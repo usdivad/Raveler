@@ -1,5 +1,6 @@
 #pragma once
 #include <memory>
+#include <vector>
 
 template <class in_type, class out_type> class circular_buffer {
 public:
@@ -13,7 +14,8 @@ public:
   void reset();
 
 protected:
-  std::unique_ptr<out_type[]> _buffer;
+  // std::unique_ptr<out_type[]> _buffer;
+  std::vector<out_type> _buffer;
   size_t _max_size;
   size_t _head = 0;
   size_t _tail = 0;
@@ -26,7 +28,8 @@ circular_buffer<in_type, out_type>::circular_buffer() {}
 
 template <class in_type, class out_type>
 void circular_buffer<in_type, out_type>::initialize(size_t size) {
-  _buffer = std::make_unique<out_type[]>(size);
+  // _buffer = std::make_unique<out_type[]>(size);
+  _buffer.resize(size);
   _max_size = size;
 }
 
