@@ -95,6 +95,15 @@ AKRESULT RaveWwiseFX::Init(AK::IAkPluginMemAlloc* in_pAllocator, AK::IAkEffectPl
     m_pContext = in_pContext;
 
     // --------
+    // RaveAP::prepareToPlay()
+
+	//_sampleRate = sampleRate;
+	_inBuffer[0].initialize(BUFFER_LENGTH);
+	_outBuffer[0].initialize(BUFFER_LENGTH);
+	_outBuffer[1].initialize(BUFFER_LENGTH);
+	//setLatencySamples(pow(2, *_latencyMode));
+
+    // --------
     // Load the model
 
     // NOTE: We do direct AkOSChar*-to-char* conversion via casting here, since CONVERT_OSCHAR_TO_CHAR() returns incorrect results
@@ -135,6 +144,14 @@ void RaveWwiseFX::Execute(AkAudioBuffer* in_pBuffer, AkUInt32 in_ulnOffset, AkAu
 {
     const AkUInt32 uNumChannels = in_pBuffer->NumChannels();
 
+    // --------
+	// RAVE
+
+    const int nSamples = in_pBuffer->uValidFrames;
+	const int nChannels = (const int)uNumChannels;
+    
+    // --------
+
     AkUInt16 uFramesConsumed;
     AkUInt16 uFramesProduced;
     for (AkUInt32 i = 0; i < uNumChannels; ++i)
@@ -166,9 +183,19 @@ void RaveWwiseFX::Execute(AkAudioBuffer* in_pBuffer, AkUInt32 in_ulnOffset, AkAu
 
 
 	// ----------------------------------------------------------------
+	// RAVE
 
-	const int nSamples = in_pBuffer->uValidFrames;
-	const int nChannels = (const int)uNumChannels;
+    if (nChannels < 1)
+    {
+        return;
+    }
+
+    // TODO: Do actual per-channel
+	AkReal32* AK_RESTRICT pInBuf = (AkReal32 * AK_RESTRICT)in_pBuffer->GetChannel(0) + in_ulnOffset;
+    for (size_t i = 0; i < nSamples; ++i)
+    {
+        _inBuffer[0].put(pInBuf, nSamples);
+    }
 
 	//juce::String channelMode =
 	//	channel_modes[static_cast<int>(_channelMode->load()) - 1];
@@ -225,6 +252,9 @@ void RaveWwiseFX::Execute(AkAudioBuffer* in_pBuffer, AkUInt32 in_ulnOffset, AkAu
 //#if DEBUG_PERFORM
 //	std::cout << "sortie : " << buffer.getMagnitude(0, nSamples) << std::endl;
 //#endif
+
+    // ----------------------------------------------------------------
+
 }
 
 AKRESULT RaveWwiseFX::TimeSkip(AkUInt32 &io_uFrames)
@@ -395,11 +425,13 @@ void RaveWwiseFX::detectAvailableModels()
 void RaveWwiseFX::mute()
 {
     _fadeScheduler.store(muting::mute);
+    _isMuted.store(true);
 }
 
 void RaveWwiseFX::unmute()
 {
     _fadeScheduler.store(muting::unmute);
+    _isMuted.store(false);
 }
 
 void RaveWwiseFX::updateBufferSizes()

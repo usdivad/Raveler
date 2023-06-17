@@ -828,7 +828,7 @@ private:
 
     std::array<std::atomic<float>, AVAILABLE_DIMS> _latentScale { 0.f };
     std::array<std::atomic<float>, AVAILABLE_DIMS> _latentBias { 0.f };
-    std::atomic<bool> _isMuted { false };
+    std::atomic<bool> _isMuted { true };
 
     enum class muting : int { ignore = 0, mute, unmute };
 
