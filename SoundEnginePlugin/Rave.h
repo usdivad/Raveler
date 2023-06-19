@@ -8,7 +8,6 @@
 
 #define MAX_LATENT_BUFFER_SIZE 32
 #define BUFFER_LENGTH 32768
-#define MAX_LOAD_MODEL_RETRIES 4
 
 using namespace torch::indexing;
 
@@ -214,26 +213,6 @@ public:
     inputs_rave.push_back(torch::ones({1, 1, getModelRatio()}));
     resetLatentBuffer();
     //sendChangeMessage(); // TODO: Implement or remove
-
-    // Retry if we have an invalid latent size (e.g. sometimes darbouka_onnx)
-    // TODO: Consolidate this with case where model loading fails due to error
-   // if (getFullLatentDimensions() <= 0)
-   // {
-   //     loadModelRetries++;
-   //     if (loadModelRetries < MAX_LOAD_MODEL_RETRIES)
-   //     { 
-			//AKPLATFORM::OutputDebugMsg("Retrying loading model due to invalid latent size ");
-			//AKPLATFORM::OutputDebugMsg(std::to_string(getFullLatentDimensions()).c_str());
-			//AKPLATFORM::OutputDebugMsg("\n");
-
-   //         load_model(rave_model_file);
-   //     }
-   //     else
-   //     {
-			//AKPLATFORM::OutputDebugMsg("Max number load model retries reached -- no more attempts will be made");
-			//AKPLATFORM::OutputDebugMsg("\n");
-   //     }
-   // }
   }
 
   torch::Tensor sample_prior(const int n_steps, const float temperature) {
