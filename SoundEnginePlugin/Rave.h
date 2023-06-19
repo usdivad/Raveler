@@ -8,6 +8,8 @@
 
 #define MAX_LATENT_BUFFER_SIZE 32
 #define BUFFER_LENGTH 32768
+#define MAX_LOAD_MODEL_RETRIES 4
+
 using namespace torch::indexing;
 
 // TODO: Move this to its own file
@@ -61,6 +63,7 @@ public:
 
     this->model_path = std::string(rave_model_file);
     auto named_buffers = this->model.named_buffers();
+    auto named_attributes = this->model.named_attributes();
     this->has_prior = false;
     this->prior_params = torch::zeros({0});
 
@@ -69,47 +72,130 @@ public:
 
     AKPLATFORM::OutputDebugMsg("\n[ ] RAVE - Model successfully loaded: ");
     AKPLATFORM::OutputDebugMsg(rave_model_file.c_str());
+	AKPLATFORM::OutputDebugMsg("\n");
 
-    for (auto const &i : named_buffers) {
-      if (i.name == "_rave.sampling_rate") {
-        this->sr = i.value.item<int>();
-        std::cout << "\tSampling rate: " << this->sr << std::endl;
+    bool foundRaveModelAsNamedAttribute = false; // TODO: Check by module type instead (e.g. Combined vs. ScriptedRAVE)?
+	for (auto const& i : named_attributes) {
+		if (i.name == "_rave") {
+			foundRaveModelAsNamedAttribute = true;
 
-		AKPLATFORM::OutputDebugMsg("\tSampling rate: ");
-		AKPLATFORM::OutputDebugMsg(std::to_string(this->sr).c_str());
-      }
-      if (i.name == "_rave.latent_size") {
-        this->latent_size = i.value.item<int>();
-        std::cout << "\tLatent size: " << this->latent_size << std::endl;
+			std::cout << "Found _rave model as named attribute" << std::endl;
 
-		AKPLATFORM::OutputDebugMsg("\tLatent size: ");
-		AKPLATFORM::OutputDebugMsg(std::to_string(this->latent_size).c_str());
-      }
-      if (i.name == "encode_params") {
-        this->encode_params = i.value;
-        std::cout << "\tEncode parameters: " << this->encode_params
-                  << std::endl;
+            AKPLATFORM::OutputDebugMsg("Found _rave model as named attribute");
+			AKPLATFORM::OutputDebugMsg("\n");            
+		}
+		else if (i.name == "stereo" || i.name == "_rave.stereo") {
+			stereo = i.value.toBool();
 
-		AKPLATFORM::OutputDebugMsg("\tEncode parameters: ");
-		AKPLATFORM::OutputDebugMsg(this->encode_params.toString().c_str());
-      }
-      if (i.name == "decode_params") {
-        this->decode_params = i.value;
-        std::cout << "\tDecode parameters: " << this->decode_params
-                  << std::endl;
+			std::cout << "Stereo?" << (stereo ? "true" : "false") << std::endl;
 
-		AKPLATFORM::OutputDebugMsg("\tDecode parameters: ");
-		AKPLATFORM::OutputDebugMsg(this->decode_params.toString().c_str());
-      }
-      if (i.name == "prior_params") {
-        this->prior_params = i.value;
-        this->has_prior = true;
-        std::cout << "\tPrior parameters: " << this->prior_params << std::endl;
+			AKPLATFORM::OutputDebugMsg("Stereo? ");
+			AKPLATFORM::OutputDebugMsg(stereo ? "true" : "false");
+			AKPLATFORM::OutputDebugMsg("\n");
+		}
+	}
 
-		AKPLATFORM::OutputDebugMsg("\tPrior parameters: ");
-		AKPLATFORM::OutputDebugMsg(this->prior_params.toString().c_str());
-      }
-    }
+	if (foundRaveModelAsNamedAttribute)
+	{
+		// Named buffers (for RAVE v1)
+		AKPLATFORM::OutputDebugMsg("\n");
+		AKPLATFORM::OutputDebugMsg("Using named buffers");
+		AKPLATFORM::OutputDebugMsg("\n");
+
+		for (auto const& i : named_buffers) {
+			if (i.name == "_rave.sampling_rate") {
+				this->sr = i.value.item<int>();
+
+				std::cout << "\tSampling rate: " << this->sr << std::endl;
+
+				AKPLATFORM::OutputDebugMsg("\tSampling rate: ");
+				AKPLATFORM::OutputDebugMsg(std::to_string(this->sr).c_str());
+			}
+			if (i.name == "_rave.latent_size") {
+				this->latent_size = i.value.item<int>();
+
+				std::cout << "\tLatent size: " << this->latent_size << std::endl;
+
+				AKPLATFORM::OutputDebugMsg("\tLatent size: ");
+				AKPLATFORM::OutputDebugMsg(std::to_string(this->latent_size).c_str());
+			}
+			if (i.name == "encode_params") {
+				this->encode_params = i.value;
+
+				std::cout << "\tEncode parameters: " << this->encode_params
+					<< std::endl;
+
+				AKPLATFORM::OutputDebugMsg("\tEncode parameters: ");
+				AKPLATFORM::OutputDebugMsg(this->encode_params.toString().c_str());
+			}
+			if (i.name == "decode_params") {
+				this->decode_params = i.value;
+
+				std::cout << "\tDecode parameters: " << this->decode_params
+					<< std::endl;
+
+				AKPLATFORM::OutputDebugMsg("\tDecode parameters: ");
+				AKPLATFORM::OutputDebugMsg(this->decode_params.toString().c_str());
+			}
+			if (i.name == "prior_params") {
+				this->prior_params = i.value;
+				this->has_prior = true;
+
+				std::cout << "\tPrior parameters: " << this->prior_params << std::endl;
+
+				AKPLATFORM::OutputDebugMsg("\tPrior parameters: ");
+				AKPLATFORM::OutputDebugMsg(this->prior_params.toString().c_str());
+			}
+		}
+	}
+	else
+	{
+		// Named attributes (for ONNX / RAVE v2)
+		AKPLATFORM::OutputDebugMsg("\n");
+		AKPLATFORM::OutputDebugMsg("Using named attributes");
+		AKPLATFORM::OutputDebugMsg("\n");
+
+		for (auto const& i : named_attributes) {
+			if (i.name == "sampling_rate") {
+				this->sr = i.value.toInt();
+				std::cout << "\tSampling rate: " << this->sr << std::endl;
+
+				AKPLATFORM::OutputDebugMsg("\tSampling rate: ");
+				AKPLATFORM::OutputDebugMsg(std::to_string(this->sr).c_str());
+			}
+			if (i.name == "full_latent_size") { // TODO: Keep track of "latent_size" as well?
+				this->latent_size = i.value.toInt();
+				std::cout << "\tLatent size: " << this->latent_size << std::endl;
+
+				AKPLATFORM::OutputDebugMsg("\tLatent size: ");
+				AKPLATFORM::OutputDebugMsg(std::to_string(this->latent_size).c_str());
+			}
+			if (i.name == "encode_params") {
+				this->encode_params = i.value.toTensor();
+				std::cout << "\tEncode parameters: " << this->encode_params
+					<< std::endl;
+
+				AKPLATFORM::OutputDebugMsg("\tEncode parameters: ");
+				AKPLATFORM::OutputDebugMsg(this->encode_params.toString().c_str());
+			}
+			if (i.name == "decode_params") {
+				this->decode_params = i.value.toTensor();
+				std::cout << "\tDecode parameters: " << this->decode_params
+					<< std::endl;
+
+				AKPLATFORM::OutputDebugMsg("\tDecode parameters: ");
+				AKPLATFORM::OutputDebugMsg(this->decode_params.toString().c_str());
+			}
+			if (i.name == "prior_params") {
+				this->prior_params = i.value.toTensor();
+				this->has_prior = true;
+				std::cout << "\tPrior parameters: " << this->prior_params << std::endl;
+
+				AKPLATFORM::OutputDebugMsg("\tPrior parameters: ");
+				AKPLATFORM::OutputDebugMsg(this->prior_params.toString().c_str());
+			}
+		}
+	}
     
     std::cout << "\tFull latent size: " << getFullLatentDimensions()
               << std::endl;
@@ -128,6 +214,26 @@ public:
     inputs_rave.push_back(torch::ones({1, 1, getModelRatio()}));
     resetLatentBuffer();
     //sendChangeMessage(); // TODO: Implement or remove
+
+    // Retry if we have an invalid latent size (e.g. sometimes darbouka_onnx)
+    // TODO: Consolidate this with case where model loading fails due to error
+   // if (getFullLatentDimensions() <= 0)
+   // {
+   //     loadModelRetries++;
+   //     if (loadModelRetries < MAX_LOAD_MODEL_RETRIES)
+   //     { 
+			//AKPLATFORM::OutputDebugMsg("Retrying loading model due to invalid latent size ");
+			//AKPLATFORM::OutputDebugMsg(std::to_string(getFullLatentDimensions()).c_str());
+			//AKPLATFORM::OutputDebugMsg("\n");
+
+   //         load_model(rave_model_file);
+   //     }
+   //     else
+   //     {
+			//AKPLATFORM::OutputDebugMsg("Max number load model retries reached -- no more attempts will be made");
+			//AKPLATFORM::OutputDebugMsg("\n");
+   //     }
+   // }
   }
 
   torch::Tensor sample_prior(const int n_steps, const float temperature) {
@@ -156,6 +262,10 @@ public:
     torch::Tensor std = stats[1].toTensor();
     std::vector<torch::Tensor> mean_std = {mean, std};
     return mean_std;
+  }
+
+  std::string dump_to_str() {
+      return this->model.dump_to_str(true, false, false);
   }
 
   torch::Tensor decode(const torch::Tensor input) {
@@ -215,6 +325,8 @@ public:
 
   at::Tensor getLatentBuffer() { return latent_buffer; }
 
+  bool isStereo() const { return stereo; }
+
 private:
   torch::jit::Module model;
   int sr;
@@ -227,4 +339,5 @@ private:
   at::Tensor latent_buffer;
   std::vector<torch::jit::IValue> inputs_rave;
   RAVEWwise::Range<float> validBufferSizeRange;
+  bool stereo = false;
 };
