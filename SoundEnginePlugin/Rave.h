@@ -302,15 +302,20 @@ public:
 
   bool hasPrior() { return has_prior; }
 
+  bool isStereo() const { return stereo; }
+
   at::Tensor getLatentBuffer() { return latent_buffer; }
 
-  bool isStereo() const { return stereo; }
+  bool hasMethod(const std::string& methodName) const {
+	return this->model.find_method(methodName).has_value();
+  }
 
 private:
   torch::jit::Module model;
   int sr;
   int latent_size;
   bool has_prior = false;
+  bool stereo = false;
   std::string model_path;
   at::Tensor encode_params;
   at::Tensor decode_params;
@@ -318,5 +323,4 @@ private:
   at::Tensor latent_buffer;
   std::vector<torch::jit::IValue> inputs_rave;
   RAVEWwise::Range<float> validBufferSizeRange;
-  bool stereo = false;
 };
