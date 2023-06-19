@@ -279,6 +279,11 @@ void RaveWwiseFX::modelPerform()
         AKPLATFORM::OutputDebugMsg("modelPerform():");
 		AKPLATFORM::OutputDebugMsg("\n");
 
+		AKPLATFORM::OutputDebugMsg("\n");
+		AKPLATFORM::OutputDebugMsg(_rave->dump_to_str().c_str());
+		AKPLATFORM::OutputDebugMsg("\n");
+		AKPLATFORM::OutputDebugMsg("\n");
+
         std::cout << "exp: " << _latencyMode << " value: " << input_size << '\n';
 		AKPLATFORM::OutputDebugMsg("Latency mode exponent: ");
 		AKPLATFORM::OutputDebugMsg(std::to_string(_latencyMode).c_str());
@@ -312,24 +317,51 @@ void RaveWwiseFX::modelPerform()
             frame = torch::reshape(frame, { 1, 1, input_size });
 #if DEBUG_PERFORM
             std::cout << "Current input size : " << frame.sizes() << std::endl;
+
+			AKPLATFORM::OutputDebugMsg("Current input size: ");
+			for (const auto inputSize : frame.sizes())
+			{
+				AKPLATFORM::OutputDebugMsg(std::to_string(inputSize).c_str());
+				AKPLATFORM::OutputDebugMsg(", ");
+			}
+			AKPLATFORM::OutputDebugMsg("\n");
 #endif DEBUG_PERFORM
-            std::vector<torch::Tensor> latent_probs = _rave->encode_amortized(frame);
-            latent_traj_mean = latent_probs[0];
-            at::Tensor latent_traj_std = latent_probs[1];
+
+			// --------------------------------
+            // Encode
+            if (_rave->hasMethod("encode_amortized")) {
+				// Mean and std from encode_amortized()
+                std::vector<torch::Tensor> latent_probs = _rave->encode_amortized(frame);
+                latent_traj_mean = latent_probs[0];
+                at::Tensor latent_traj_std = latent_probs[1];
 
 #if DEBUG_PERFORM
-            std::cout << "mean shape" << latent_traj_mean.sizes() << std::endl;
-            std::cout << "std shape" << latent_traj_std.sizes() << std::endl;
+                std::cout << "mean shape" << latent_traj_mean.sizes() << std::endl;
+                std::cout << "std shape" << latent_traj_std.sizes() << std::endl;
 #endif
 
-            latent_traj = latent_traj_mean +
-                latent_traj_std * torch::randn_like(latent_traj_mean);
+                latent_traj = latent_traj_mean +
+                    latent_traj_std * torch::randn_like(latent_traj_mean);
+            }
+            else {
+                // Regular encode()
+			    latent_traj = _rave->encode(frame);
+			    latent_traj_mean = latent_traj;
+            }
         }
 
 #if DEBUG_PERFORM
         std::cout << "latent traj shape" << latent_traj.sizes() << std::endl;
-#endif
 
+		AKPLATFORM::OutputDebugMsg("latent traj shape: ");
+		for (const auto latentTrajSize : latent_traj.sizes())
+		{
+			AKPLATFORM::OutputDebugMsg(std::to_string(latentTrajSize).c_str());
+			AKPLATFORM::OutputDebugMsg(", ");
+		}
+		AKPLATFORM::OutputDebugMsg("\n");
+#endif
+		// --------------------------------
         // Latent modifications
         // apply scale and bias
         int64_t n_dimensions =
@@ -353,52 +385,123 @@ void RaveWwiseFX::modelPerform()
 
 #if DEBUG_PERFORM
         std::cout << "scale & bias applied" << std::endl;
-#endif
 
+		AKPLATFORM::OutputDebugMsg("scale & bias applied");
+		AKPLATFORM::OutputDebugMsg("\n");
+#endif
+		// --------------------------------
         // adding latent jitter on meaningful dimensions
         float jitter_amount = _latentJitterValue.load();
         latent_traj = latent_traj + jitter_amount * torch::randn_like(latent_traj);
 
 #if DEBUG_PERFORM
         std::cout << "jitter applied" << std::endl;
-#endif
 
+		AKPLATFORM::OutputDebugMsg("jitter applied");
+		AKPLATFORM::OutputDebugMsg("\n");
+#endif
+		// --------------------------------
         // filling missing dimensions with width parameter
-        torch::Tensor latent_trajL = latent_traj,
-            latent_trajR = latent_traj.clone();
-        int missing_dims = _rave->getFullLatentDimensions() - latent_trajL.size(1);
-        float width = _widthValue.load() / 100.f;
-        at::Tensor latent_noiseL =
-            torch::randn({ 1, missing_dims, latent_trajL.size(2) });
-        at::Tensor latent_noiseR =
-            (1 - width) * latent_noiseL +
-            width * torch::randn({ 1, missing_dims, latent_trajL.size(2) });
+
+		int missing_dims = _rave->getFullLatentDimensions() - latent_traj.size(1);
+
+		if (_rave->isStereo() && missing_dims > 0)
+		{
+
+			torch::Tensor latent_trajL = latent_traj,
+				latent_trajR = latent_traj.clone();
 
 #if DEBUG_PERFORM
-        std::cout << "after width : " << latent_noiseL.sizes() << ";"
-            << latent_trajL.sizes() << std::endl;
+		    AKPLATFORM::OutputDebugMsg("latent size: ");
+		    AKPLATFORM::OutputDebugMsg(std::to_string(_rave->getFullLatentDimensions()).c_str());
+		    AKPLATFORM::OutputDebugMsg(", latent traj size: ");
+		    AKPLATFORM::OutputDebugMsg(std::to_string(latent_trajL.size(1)).c_str());
+		    AKPLATFORM::OutputDebugMsg(", missing dimensions: ");
+		    AKPLATFORM::OutputDebugMsg(std::to_string(missing_dims).c_str());
+
+		    AKPLATFORM::OutputDebugMsg("\n");
 #endif
 
-        latent_trajL = torch::cat({ latent_trajL, latent_noiseL }, 1);
-        latent_trajR = torch::cat({ latent_trajR, latent_noiseR }, 1);
+
+			float width = _widthValue.load() / 100.f;
+			at::Tensor latent_noiseL =
+				torch::randn({ 1, missing_dims, latent_trajL.size(2) });
+			at::Tensor latent_noiseR =
+				(1 - width) * latent_noiseL +
+				width * torch::randn({ 1, missing_dims, latent_trajL.size(2) });
 
 #if DEBUG_PERFORM
-        std::cout << "latent processed" << std::endl;
+			std::cout << "after width : " << latent_noiseL.sizes() << ";"
+				<< latent_trajL.sizes() << std::endl;
+
+			AKPLATFORM::OutputDebugMsg("after width: ");
+			for (const auto latentNoiseLSize : latent_noiseL.sizes())
+			{
+				AKPLATFORM::OutputDebugMsg(std::to_string(latentNoiseLSize).c_str());
+				AKPLATFORM::OutputDebugMsg(", ");
+			}
+			AKPLATFORM::OutputDebugMsg("\n");
 #endif
 
-        // Decode
-        latent_traj = torch::cat({ latent_trajL, latent_trajR }, 0);
+			latent_trajL = torch::cat({ latent_trajL, latent_noiseL }, 1);
+			latent_trajR = torch::cat({ latent_trajR, latent_noiseR }, 1);
+        
+
+#if DEBUG_PERFORM
+		    std::cout << "latent processed" << std::endl;
+
+		    AKPLATFORM::OutputDebugMsg("latent processed");
+		    AKPLATFORM::OutputDebugMsg("\n");
+#endif
+
+            latent_traj = torch::cat({ latent_trajL, latent_trajR }, 0);
+
+#if DEBUG_PERFORM
+			std::cout << "new latent traj shape" << latent_traj.sizes() << std::endl;
+
+			AKPLATFORM::OutputDebugMsg("new latent traj shape: ");
+			for (const auto latentTrajSize : latent_traj.sizes())
+			{
+				AKPLATFORM::OutputDebugMsg(std::to_string(latentTrajSize).c_str());
+				AKPLATFORM::OutputDebugMsg(", ");
+			}
+			AKPLATFORM::OutputDebugMsg("\n");
+#endif
+        }
+
+        // --------------------------------
+		// Decode
         at::Tensor out = _rave->decode(latent_traj);
+
+#if DEBUG_PERFORM
+		AKPLATFORM::OutputDebugMsg("out shape: ");
+        for (const auto outSize : out.sizes())
+        {
+			AKPLATFORM::OutputDebugMsg(std::to_string(outSize).c_str());
+			AKPLATFORM::OutputDebugMsg(", ");
+        }
+		AKPLATFORM::OutputDebugMsg("\n");
+#endif
+
         // On windows, I don't get why, but the two first dims are swapped (compared
         // to macOS / UNIX) with the same torch version
         if (out.sizes()[0] == 2) {
             out = out.transpose(0, 1);
         }
+
         at::Tensor outL = out.index({ 0, 0, at::indexing::Slice() });
-        at::Tensor outR = out.index({ 0, 1, at::indexing::Slice() });
+        
+        // Set outR if available
+        at::Tensor outR = outL.clone();
+        if (out.sizes()[1] > 1) {
+            outR = out.index({ 0, 1, at::indexing::Slice() });
+        }
 
 #if DEBUG_PERFORM
         std::cout << "latent decoded" << std::endl;
+
+		AKPLATFORM::OutputDebugMsg("latent decoded");
+		AKPLATFORM::OutputDebugMsg("\n");
 #endif
 
         float* outputDataPtrL, * outputDataPtrR;
