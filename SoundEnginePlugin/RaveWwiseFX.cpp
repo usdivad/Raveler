@@ -489,13 +489,9 @@ void RaveWwiseFX::modelPerform()
             out = out.transpose(0, 1);
         }
 
-        at::Tensor outL = out.index({ 0, 0, at::indexing::Slice() });
-        
-        // Set outR if available
-        at::Tensor outR = outL.clone();
-        if (out.sizes()[1] > 1) {
-            outR = out.index({ 0, 1, at::indexing::Slice() });
-        }
+		const int outIndexR = (out.sizes()[1] > 1 ? 1 : 0); // Use right channel if available
+		at::Tensor outL = out.index({ 0, 0, at::indexing::Slice() });
+		at::Tensor outR = out.index({ 0, outIndexR, at::indexing::Slice() });
 
 #if DEBUG_PERFORM
         std::cout << "latent decoded" << std::endl;
