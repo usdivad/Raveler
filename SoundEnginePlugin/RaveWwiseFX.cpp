@@ -202,12 +202,17 @@ void RaveWwiseFX::Execute(AkAudioBuffer* in_pBuffer, AkUInt32 in_ulnOffset, AkAu
     }
 
     // TODO: Do actual per-channel
+	//AKPLATFORM::OutputDebugMsg("\n");
 	AkReal32* AK_RESTRICT pInBuf = (AkReal32 * AK_RESTRICT)in_pBuffer->GetChannel(0) + in_ulnOffset;
     for (size_t i = 0; i < nSamples; ++i)
     {
         //_inBuffer[0].put(pInBuf, nSamples);
         _inBuffer[0].push((float)(pInBuf[i]));
+
+        //AKPLATFORM::OutputDebugMsg(std::to_string(pInBuf[i]).c_str());
+        //AKPLATFORM::OutputDebugMsg(", ");
     }
+	//AKPLATFORM::OutputDebugMsg("\n");
     
     uFramesConsumed = nSamples;
 
@@ -240,6 +245,24 @@ void RaveWwiseFX::Execute(AkAudioBuffer* in_pBuffer, AkUInt32 in_ulnOffset, AkAu
 		_outBuffer[0].put(_outModel[0].get(), currentRefreshRate);
 		_outBuffer[1].put(_outModel[1].get(), currentRefreshRate);
 		_computeThread = std::make_unique<std::thread>(RAVEWwise::modelPerform_callback, this);
+
+		//AKPLATFORM::OutputDebugMsg("\n");
+		//AKPLATFORM::OutputDebugMsg("_inModel: ");
+  //      for (int i = 0; i < currentRefreshRate; ++i)
+  //      {
+  //          AKPLATFORM::OutputDebugMsg(std::to_string(_inModel[0][i]).c_str());
+		//	AKPLATFORM::OutputDebugMsg(", ");
+  //      }
+		//AKPLATFORM::OutputDebugMsg("\n");
+
+		//AKPLATFORM::OutputDebugMsg("\n");
+		//AKPLATFORM::OutputDebugMsg("_outModel: ");
+		//for (int i = 0; i < currentRefreshRate; ++i)
+		//{
+		//	AKPLATFORM::OutputDebugMsg(std::to_string(_outModel[0][i]).c_str());
+		//	AKPLATFORM::OutputDebugMsg(", ");
+		//}
+		//AKPLATFORM::OutputDebugMsg("\n");
 	}
 
 	//AudioBuffer<float> out_buffer(2, nSamples);
@@ -264,7 +287,7 @@ void RaveWwiseFX::Execute(AkAudioBuffer* in_pBuffer, AkUInt32 in_ulnOffset, AkAu
             AkReal32 sampleValueL = _outBuffer[0].pop();
             AkReal32 sampleValueR = _outBuffer[1].pop();
 
-            if (i < out_pBuffer->uValidFrames)
+            if (i < out_pBuffer->MaxFrames())
             { 
                 pOutBufL[i] = sampleValueL;
                 pOutBufR[i] = sampleValueR;
@@ -561,10 +584,16 @@ void RaveWwiseFX::modelPerform()
 
         // Write in buffers
         assert(input_size >= 0);
+		//AKPLATFORM::OutputDebugMsg("\n");
         for (size_t i = 0; i < (size_t)input_size; i++) {
             _outModel[0][i] = outputDataPtrL[i];
             _outModel[1][i] = outputDataPtrR[i];
+
+            //AKPLATFORM::OutputDebugMsg(std::to_string(outputDataPtrL[i]).c_str());
+			//AKPLATFORM::OutputDebugMsg(std::to_string(_outModel[0][i]).c_str());
+            //AKPLATFORM::OutputDebugMsg(", ");
         }
+		//AKPLATFORM::OutputDebugMsg("\n");
 
         // TODO
         //if (_smoothedFadeInOut.getCurrentValue() < EPSILON) {
