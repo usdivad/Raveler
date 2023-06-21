@@ -67,9 +67,9 @@ RaveWwiseFX::RaveWwiseFX()
 
     _inBuffer = std::make_unique<circular_buffer<float, float>[]>(1);
     _outBuffer = std::make_unique<circular_buffer<float, float>[]>(2);
-    _inModel.push_back(std::make_unique<float[]>(BUFFER_LENGTH));
-    _outModel.push_back(std::make_unique<float[]>(BUFFER_LENGTH));
-    _outModel.push_back(std::make_unique<float[]>(BUFFER_LENGTH));
+	_inModel.push_back(std::make_unique<float[]>(BUFFER_LENGTH));
+	_outModel.push_back(std::make_unique<float[]>(BUFFER_LENGTH));
+	_outModel.push_back(std::make_unique<float[]>(BUFFER_LENGTH));
     
     _engineThreadPool = std::make_unique<BS::thread_pool>(1);
     
@@ -93,6 +93,20 @@ AKRESULT RaveWwiseFX::Init(AK::IAkPluginMemAlloc* in_pAllocator, AK::IAkEffectPl
     m_pParams = (RaveWwiseFXParams*)in_pParams;
     m_pAllocator = in_pAllocator;
     m_pContext = in_pContext;
+
+	// --------
+    // Allocation for RAVE members
+
+ //   _ravePtr = AK_PLUGIN_NEW(m_pAllocator, RAVE());
+ //   _rave.reset(_ravePtr);
+
+ //   _inModelBuf = (float*)(AK_PLUGIN_ALLOC(m_pAllocator, sizeof(float) * BUFFER_LENGTH));
+ //   _inModel.push_back(_inModelBuf);
+
+ //   _outModelBufL = (float*)(AK_PLUGIN_ALLOC(m_pAllocator, sizeof(float) * BUFFER_LENGTH));
+ //   _outModelBufR = (float*)(AK_PLUGIN_ALLOC(m_pAllocator, sizeof(float) * BUFFER_LENGTH));
+ //   _outModel.push_back(_outModelBufL);
+ //   _outModel.push_back(_outModelBufR);
 
     // --------
     // RaveAP::prepareToPlay()
@@ -122,7 +136,13 @@ AKRESULT RaveWwiseFX::Init(AK::IAkPluginMemAlloc* in_pAllocator, AK::IAkEffectPl
 
 AKRESULT RaveWwiseFX::Term(AK::IAkPluginMemAlloc* in_pAllocator)
 {
+ //   AK_PLUGIN_DELETE(in_pAllocator, _ravePtr);
+ //   AK_PLUGIN_FREE(in_pAllocator, _inModelBuf);
+ //   AK_PLUGIN_FREE(in_pAllocator, _outModelBufL);
+ //   AK_PLUGIN_FREE(in_pAllocator, _outModelBufR);
+
     AK_PLUGIN_DELETE(in_pAllocator, this);
+    
     return AK_Success;
 }
 
@@ -152,34 +172,25 @@ void RaveWwiseFX::Execute(AkAudioBuffer* in_pBuffer, AkUInt32 in_ulnOffset, AkAu
     
     // --------
 
-    AkUInt16 uFramesConsumed;
-    AkUInt16 uFramesProduced;
-    for (AkUInt32 i = 0; i < uNumChannels; ++i)
-    {
-        AkReal32* AK_RESTRICT pInBuf = (AkReal32* AK_RESTRICT)in_pBuffer->GetChannel(i) + in_ulnOffset;
-        AkReal32* AK_RESTRICT pOutBuf = (AkReal32* AK_RESTRICT)out_pBuffer->GetChannel(i) +  out_pBuffer->uValidFrames;
+	AkUInt16 uFramesConsumed = 0;
+	AkUInt16 uFramesProduced = 0;
 
-        uFramesConsumed = 0;
-        uFramesProduced = 0;
-        while (uFramesConsumed < in_pBuffer->uValidFrames
-            && uFramesProduced < out_pBuffer->MaxFrames())
-        {
-             // Execute DSP that consumes input and produces output at different rate here
-            *pOutBuf++ = *pInBuf++;
-            ++uFramesConsumed;
-            ++uFramesProduced;
-        }
-    }
+    //for (AkUInt32 i = 0; i < uNumChannels; ++i)
+    //{
+    //    AkReal32* AK_RESTRICT pInBuf = (AkReal32* AK_RESTRICT)in_pBuffer->GetChannel(i) + in_ulnOffset;
+    //    AkReal32* AK_RESTRICT pOutBuf = (AkReal32* AK_RESTRICT)out_pBuffer->GetChannel(i) +  out_pBuffer->uValidFrames;
 
-    in_pBuffer->uValidFrames -= uFramesConsumed;
-    out_pBuffer->uValidFrames += uFramesProduced;
-
-    if (in_pBuffer->eState == AK_NoMoreData && in_pBuffer->uValidFrames == 0)
-        out_pBuffer->eState = AK_NoMoreData;
-    else if (out_pBuffer->uValidFrames == out_pBuffer->MaxFrames())
-        out_pBuffer->eState = AK_DataReady;
-    else
-        out_pBuffer->eState = AK_DataNeeded;
+    //    uFramesConsumed = 0;
+    //    uFramesProduced = 0;
+    //    while (uFramesConsumed < in_pBuffer->uValidFrames
+    //        && uFramesProduced < out_pBuffer->MaxFrames())
+    //    {
+    //         // Execute DSP that consumes input and produces output at different rate here
+    //        *pOutBuf++ = *pInBuf++;
+    //        ++uFramesConsumed;
+    //        ++uFramesProduced;
+    //    }
+    //}
 
 
 	// ----------------------------------------------------------------
@@ -194,8 +205,11 @@ void RaveWwiseFX::Execute(AkAudioBuffer* in_pBuffer, AkUInt32 in_ulnOffset, AkAu
 	AkReal32* AK_RESTRICT pInBuf = (AkReal32 * AK_RESTRICT)in_pBuffer->GetChannel(0) + in_ulnOffset;
     for (size_t i = 0; i < nSamples; ++i)
     {
-        _inBuffer[0].put(pInBuf, nSamples);
+        //_inBuffer[0].put(pInBuf, nSamples);
+        _inBuffer[0].push((float)(pInBuf[i]));
     }
+    
+    uFramesConsumed = nSamples;
 
 	//juce::String channelMode =
 	//	channel_modes[static_cast<int>(_channelMode->load()) - 1];
@@ -228,17 +242,47 @@ void RaveWwiseFX::Execute(AkAudioBuffer* in_pBuffer, AkUInt32 in_ulnOffset, AkAu
 		_computeThread = std::make_unique<std::thread>(RAVEWwise::modelPerform_callback, this);
 	}
 
-//	AudioBuffer<float> out_buffer(2, nSamples);
-//	juce::dsp::AudioBlock<float> out_ab(out_buffer);
-//	juce::dsp::ProcessContextReplacing<float> out_context(out_ab);
-//	if (_outBuffer[0].len() >= nSamples) {
-//		_outBuffer[0].get(out_buffer.getWritePointer(0), nSamples);
-//		_outBuffer[1].get(out_buffer.getWritePointer(1), nSamples);
-//	}
-//	else {
-//		out_buffer.clear();
-//	}
-//
+	//AudioBuffer<float> out_buffer(2, nSamples);
+	//juce::dsp::AudioBlock<float> out_ab(out_buffer);
+	//juce::dsp::ProcessContextReplacing<float> out_context(out_ab);
+
+	AKPLATFORM::OutputDebugMsg("_inBuffer[0].len() = ");
+	AKPLATFORM::OutputDebugMsg(std::to_string(_inBuffer[0].len()).c_str());
+	AKPLATFORM::OutputDebugMsg(", _outBuffer[0].len() = ");
+	AKPLATFORM::OutputDebugMsg(std::to_string(_outBuffer[0].len()).c_str());
+    AKPLATFORM::OutputDebugMsg("\n");
+
+	if (_outBuffer[0].len() >= nSamples) {
+		AkReal32* AK_RESTRICT pOutBufL = (AkReal32 * AK_RESTRICT)out_pBuffer->GetChannel(0) + out_pBuffer->uValidFrames;
+		AkReal32* AK_RESTRICT pOutBufR = (AkReal32 * AK_RESTRICT)out_pBuffer->GetChannel(1) + out_pBuffer->uValidFrames;
+
+		//_outBuffer[0].get((float*)pOutBufL, nSamples);
+		//_outBuffer[1].get((float*)pOutBufR, nSamples);
+
+        for (size_t i = 0; i < nSamples; i++)
+        {
+            AkReal32 sampleValueL = _outBuffer[0].pop();
+            AkReal32 sampleValueR = _outBuffer[1].pop();
+
+            if (i < out_pBuffer->uValidFrames)
+            { 
+                pOutBufL[i] = sampleValueL;
+                pOutBufR[i] = sampleValueR;
+            }
+        }
+
+        uFramesProduced = nSamples;
+		AKPLATFORM::OutputDebugMsg("Produced ");
+		AKPLATFORM::OutputDebugMsg(std::to_string(nSamples).c_str());
+		AKPLATFORM::OutputDebugMsg(" frames");
+		AKPLATFORM::OutputDebugMsg("\n");
+	}
+	else {
+		//out_buffer.clear();
+		AKPLATFORM::OutputDebugMsg("Waiting...");
+		AKPLATFORM::OutputDebugMsg("\n");
+	}
+
 //#if DEBUG
 //	std::cout << "buffer out : " << out_buffer.getMagnitude(0, nSamples)
 //		<< std::endl;
@@ -254,6 +298,16 @@ void RaveWwiseFX::Execute(AkAudioBuffer* in_pBuffer, AkUInt32 in_ulnOffset, AkAu
 //#endif
 
     // ----------------------------------------------------------------
+
+	in_pBuffer->uValidFrames -= uFramesConsumed;
+	out_pBuffer->uValidFrames += uFramesProduced;
+
+	if (in_pBuffer->eState == AK_NoMoreData && in_pBuffer->uValidFrames == 0)
+		out_pBuffer->eState = AK_NoMoreData;
+	else if (out_pBuffer->uValidFrames == out_pBuffer->MaxFrames())
+		out_pBuffer->eState = AK_DataReady;
+	else
+		out_pBuffer->eState = AK_DataNeeded;
 
 }
 
@@ -279,10 +333,11 @@ void RaveWwiseFX::modelPerform()
         AKPLATFORM::OutputDebugMsg("modelPerform():");
 		AKPLATFORM::OutputDebugMsg("\n");
 
-		AKPLATFORM::OutputDebugMsg("\n");
-		AKPLATFORM::OutputDebugMsg(_rave->dump_to_str().c_str());
-		AKPLATFORM::OutputDebugMsg("\n");
-		AKPLATFORM::OutputDebugMsg("\n");
+        // Dump full model to string
+		//AKPLATFORM::OutputDebugMsg("\n");
+		//AKPLATFORM::OutputDebugMsg(_rave->dump_to_str().c_str());
+		//AKPLATFORM::OutputDebugMsg("\n");
+		//AKPLATFORM::OutputDebugMsg("\n");
 
         std::cout << "exp: " << _latencyMode << " value: " << input_size << '\n';
 		AKPLATFORM::OutputDebugMsg("Latency mode exponent: ");
@@ -510,9 +565,11 @@ void RaveWwiseFX::modelPerform()
             _outModel[0][i] = outputDataPtrL[i];
             _outModel[1][i] = outputDataPtrR[i];
         }
-        if (_smoothedFadeInOut.getCurrentValue() < EPSILON) {
-            _isMuted.store(true);
-        }
+
+        // TODO
+        //if (_smoothedFadeInOut.getCurrentValue() < EPSILON) {
+        //    _isMuted.store(true);
+        //}
     }
 }
 

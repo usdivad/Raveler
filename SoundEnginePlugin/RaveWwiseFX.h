@@ -784,6 +784,12 @@ public:
     float _outputAmplitudeR { 0.f };
     bool _plays { false };
 
+    // Customs for AK_PLUGIN memory allocation
+    //RAVE* _ravePtr { nullptr };
+    //float* _inModelBuf { nullptr };
+    //float* _outModelBufL { nullptr };
+    //float* _outModelBufR { nullptr };
+
 private:
     //------------------------------------------------------------------------------------------------------------------
 
@@ -802,7 +808,8 @@ private:
     double _sampleRate { 0.0 };
     std::unique_ptr<circular_buffer<float, float>[]> _inBuffer { nullptr };
     std::unique_ptr<circular_buffer<float, float>[]> _outBuffer { nullptr };
-    std::vector<std::unique_ptr<float[]>> _inModel { }, _outModel { };
+    //std::vector<float*> _inModel { }, _outModel { };
+	std::vector<std::unique_ptr<float[]>> _inModel{ }, _outModel{ };
     std::unique_ptr<std::thread> _computeThread { nullptr };
 
     bool _editorReady { false };
