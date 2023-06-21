@@ -10,6 +10,7 @@ public:
   bool full();
   void put(in_type *input_array, int N);
   void get(out_type *output_array, int N);
+  void push(in_type input);
   out_type pop();
   int len();
   void reset();
@@ -79,6 +80,19 @@ void circular_buffer<in_type, out_type>::get(out_type *output_array, int N) {
     }
     _count--;
   }
+}
+
+template <class in_type, class out_type>
+void circular_buffer<in_type, out_type>::push(in_type input) {
+	if (!_max_size)
+		return;
+
+	_buffer[_head] = out_type(input);
+	_head = (_head + 1) % _max_size;
+	if (_full)
+		_tail = (_tail + 1) % _max_size;
+	_full = _head == _tail;
+	_count++;
 }
 
 template <class in_type, class out_type>
