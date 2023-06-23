@@ -833,7 +833,7 @@ private:
     std::atomic<float> _usePrior { 0.f }; // bool behavior, default = false
     std::atomic<float> _priorTemperature { 1.f }; // min = 0, max = 5, default = 1
 
-    std::array<std::atomic<float>, AVAILABLE_DIMS> _latentScale { 0.f };
+    std::array<std::atomic<float>, AVAILABLE_DIMS> _latentScale { 1.f };
     std::array<std::atomic<float>, AVAILABLE_DIMS> _latentBias { 0.f };
     std::atomic<bool> _isMuted { true };
 
