@@ -170,7 +170,8 @@ AKRESULT RaveWwiseFX::GetPluginInfo(AkPluginInfo& out_rPluginInfo)
 
 void RaveWwiseFX::Execute(AkAudioBuffer* in_pBuffer, AkUInt32 in_ulnOffset, AkAudioBuffer* out_pBuffer)
 {
-    const AkUInt32 uNumChannels = in_pBuffer->NumChannels();
+    const AkUInt32 uNumChannelsIn = in_pBuffer->NumChannels();
+    const AkUInt32 uNumChannelsOut = out_pBuffer->NumChannels();
 
 	// ----------------------------------------------------------------
     // Update RTPC params
@@ -184,7 +185,8 @@ void RaveWwiseFX::Execute(AkAudioBuffer* in_pBuffer, AkUInt32 in_ulnOffset, AkAu
 
 	// RAVE
     const int nSamples = in_pBuffer->uValidFrames;
-	const int nChannels = (const int)uNumChannels;
+	const int nChannelsIn = (const int)uNumChannelsIn;
+    const int nChannelsOut = (const int)uNumChannelsOut;
     
     if (!_modelLoaded)
     {
@@ -200,7 +202,7 @@ void RaveWwiseFX::Execute(AkAudioBuffer* in_pBuffer, AkUInt32 in_ulnOffset, AkAu
 	AkUInt16 uFramesConsumed = 0;
 	AkUInt16 uFramesProduced = 0;
 
-    //for (AkUInt32 i = 0; i < uNumChannels; ++i)
+    //for (AkUInt32 i = 0; i < uNumChannelsIn; ++i)
     //{
     //    AkReal32* AK_RESTRICT pInBuf = (AkReal32* AK_RESTRICT)in_pBuffer->GetChannel(i) + in_ulnOffset;
     //    AkReal32* AK_RESTRICT pOutBuf = (AkReal32* AK_RESTRICT)out_pBuffer->GetChannel(i) +  out_pBuffer->uValidFrames;
@@ -221,26 +223,26 @@ void RaveWwiseFX::Execute(AkAudioBuffer* in_pBuffer, AkUInt32 in_ulnOffset, AkAu
 	// ----------------------------------------------------------------
 	// Push input buffer contents to circular buffer
 
-    if (nChannels < 1)
+    if (nChannelsIn < 1)
     {
         return;
     }
 
-    // TODO: Do actual per-channel
-	//AKPLATFORM::OutputDebugMsg("\n");
-	AkReal32* AK_RESTRICT pInBuf = (AkReal32 * AK_RESTRICT)in_pBuffer->GetChannel(0) + in_ulnOffset;
+    // Model input is mono, so we average all the input channels' sample values
     for (size_t i = 0; i < nSamples; ++i)
     {
-        //if (_modelLoaded)
-        //{ 
-            //_inBuffer[0].put(pInBuf, nSamples);
-            _inBuffer[0].push((float)(pInBuf[i]));
-            //_dryBuffer[0].push((float)(pInBuf[i]));
-        //}
-        //AKPLATFORM::OutputDebugMsg(std::to_string(pInBuf[i]).c_str());
-        //AKPLATFORM::OutputDebugMsg(", ");
+        float sampleValue = 0.f;
+
+        for (size_t inChannelIdx = 0; inChannelIdx < nChannelsIn; ++inChannelIdx)
+        {
+            AkReal32* AK_RESTRICT pInBuf = (AkReal32 * AK_RESTRICT)in_pBuffer->GetChannel(inChannelIdx) + in_ulnOffset;
+            sampleValue += pInBuf[i];
+        }
+
+        sampleValue /= nChannelsIn;
+
+        _inBuffer[0].push(sampleValue);
     }
-	//AKPLATFORM::OutputDebugMsg("\n");
     
     uFramesConsumed = nSamples;
 
@@ -276,7 +278,7 @@ void RaveWwiseFX::Execute(AkAudioBuffer* in_pBuffer, AkUInt32 in_ulnOffset, AkAu
 		}
 		_inBuffer[0].get(_inModel[0].get(), currentRefreshRate);
 
-        for (int i = 0; i < currentRefreshRate; ++i)
+        for (size_t i = 0; i < currentRefreshRate; ++i)
         {
             _dryBuffer[0].push(_inModel[0][i]);
         }
@@ -291,7 +293,7 @@ void RaveWwiseFX::Execute(AkAudioBuffer* in_pBuffer, AkUInt32 in_ulnOffset, AkAu
 
 		//AKPLATFORM::OutputDebugMsg("\n");
 		//AKPLATFORM::OutputDebugMsg("_inModel: ");
-  //      for (int i = 0; i < currentRefreshRate; ++i)
+  //      for (size_t i = 0; i < currentRefreshRate; ++i)
   //      {
   //          AKPLATFORM::OutputDebugMsg(std::to_string(_inModel[0][i]).c_str());
 		//	AKPLATFORM::OutputDebugMsg(", ");
@@ -300,7 +302,7 @@ void RaveWwiseFX::Execute(AkAudioBuffer* in_pBuffer, AkUInt32 in_ulnOffset, AkAu
 
 		//AKPLATFORM::OutputDebugMsg("\n");
 		//AKPLATFORM::OutputDebugMsg("_outModel: ");
-		//for (int i = 0; i < currentRefreshRate; ++i)
+		//for (size_t i = 0; i < currentRefreshRate; ++i)
 		//{
 		//	AKPLATFORM::OutputDebugMsg(std::to_string(_outModel[0][i]).c_str());
 		//	AKPLATFORM::OutputDebugMsg(", ");
@@ -377,13 +379,24 @@ void RaveWwiseFX::Execute(AkAudioBuffer* in_pBuffer, AkUInt32 in_ulnOffset, AkAu
                 const float wetAmount = _dryWetValue * 0.01f;
                 const float dryAmount = 1.f - wetAmount;
 
-                //const float drySampleValue = _inModel[0][i];
+				const float wetSampleValue = (wetSampleValueL + wetSampleValueR) * 0.5f;
 
-                const AkReal32 outputSampleValueL = (dryAmount * drySampleValue) + (wetAmount * wetSampleValueL);
-				const AkReal32 outputSampleValueR = (dryAmount * drySampleValue) + (wetAmount * wetSampleValueR);
+                // L/R
+				//const AkReal32 outputSampleValueL = (dryAmount * drySampleValue) + (wetAmount * wetSampleValueL);
+				//const AkReal32 outputSampleValueR = (dryAmount * drySampleValue) + (wetAmount * wetSampleValueR);
+				//pOutBufL[i] = outputSampleValueL;
+				//pOutBufR[i] = outputSampleValueR;
 
-                pOutBufL[i] = outputSampleValueL;
-                pOutBufR[i] = outputSampleValueR;
+                // Copy averaged L/R output sample value to all channels of output buffer
+                // TODO: Split L/R output amongst the output channels
+
+				const AkReal32 outputSampleValue = (dryAmount * drySampleValue) + (wetAmount * wetSampleValue);
+
+				for (size_t outChannelIdx = 0; outChannelIdx < nChannelsOut; ++outChannelIdx)
+				{
+					AkReal32* AK_RESTRICT pOutBuf = (AkReal32 * AK_RESTRICT)out_pBuffer->GetChannel(outChannelIdx) + out_pBuffer->uValidFrames;
+					pOutBuf[i] = outputSampleValue;
+				}
             }
         }
 
@@ -420,7 +433,7 @@ void RaveWwiseFX::Execute(AkAudioBuffer* in_pBuffer, AkUInt32 in_ulnOffset, AkAu
 //#endif
 //
 //	buffer.copyFrom(0, 0, out_buffer, 0, 0, nSamples);
-//	if (nChannels == 2)
+//	if (nChannelsIn == 2)
 //		buffer.copyFrom(1, 0, out_buffer, 1, 0, nSamples);
 //
 //
@@ -454,7 +467,10 @@ void RaveWwiseFX::modelPerform()
 {
     if (_rave.get() && !_isMuted.load()) {
         c10::InferenceMode guard(true);
-        // encode
+
+        // --------------------------------
+        // Setup parameters
+
         int input_size = static_cast<int>(pow(2, _latencyMode));
 
         at::Tensor latent_traj;
@@ -502,22 +518,24 @@ void RaveWwiseFX::modelPerform()
             int64_t sizes = { input_size };
             at::Tensor frame = torch::from_blob(_inModel[0].get(), sizes);
             frame = torch::reshape(frame, { 1, 1, input_size });
+
 #if DEBUG_PERFORM
             std::cout << "Current input size : " << frame.sizes() << std::endl;
 
-			AKPLATFORM::OutputDebugMsg("Current input size: ");
-			for (const auto inputSize : frame.sizes())
-			{
-				AKPLATFORM::OutputDebugMsg(std::to_string(inputSize).c_str());
-				AKPLATFORM::OutputDebugMsg(", ");
-			}
-			AKPLATFORM::OutputDebugMsg("\n");
+            AKPLATFORM::OutputDebugMsg("Current input size: ");
+            for (const auto inputSize : frame.sizes())
+            {
+	            AKPLATFORM::OutputDebugMsg(std::to_string(inputSize).c_str());
+	            AKPLATFORM::OutputDebugMsg(", ");
+            }
+            AKPLATFORM::OutputDebugMsg("\n");
 #endif DEBUG_PERFORM
 
 			// --------------------------------
             // Encode
             if (_rave->hasMethod("encode_amortized")) {
-				// Mean and std from encode_amortized()
+
+                // Mean and std from encode_amortized()
                 std::vector<torch::Tensor> latent_probs = _rave->encode_amortized(frame);
                 latent_traj_mean = latent_probs[0];
                 at::Tensor latent_traj_std = latent_probs[1];
@@ -531,34 +549,39 @@ void RaveWwiseFX::modelPerform()
                     latent_traj_std * torch::randn_like(latent_traj_mean);
             }
             else {
+
                 // Regular encode()
-			    latent_traj = _rave->encode(frame);
-			    latent_traj_mean = latent_traj;
+                latent_traj = _rave->encode(frame);
+                latent_traj_mean = latent_traj;
             }
         }
 
 #if DEBUG_PERFORM
         std::cout << "latent traj shape" << latent_traj.sizes() << std::endl;
 
-		AKPLATFORM::OutputDebugMsg("latent traj shape: ");
-		for (const auto latentTrajSize : latent_traj.sizes())
-		{
-			AKPLATFORM::OutputDebugMsg(std::to_string(latentTrajSize).c_str());
-			AKPLATFORM::OutputDebugMsg(", ");
-		}
-		AKPLATFORM::OutputDebugMsg("\n");
+        AKPLATFORM::OutputDebugMsg("latent traj shape: ");
+        for (const auto latentTrajSize : latent_traj.sizes())
+        {
+	        AKPLATFORM::OutputDebugMsg(std::to_string(latentTrajSize).c_str());
+	        AKPLATFORM::OutputDebugMsg(", ");
+        }
+        AKPLATFORM::OutputDebugMsg("\n");
 #endif
-		// --------------------------------
+        // --------------------------------
         // Latent modifications
         // apply scale and bias
         int64_t n_dimensions =
             std::min((int)latent_traj.size(1), (int)AVAILABLE_DIMS);
         for (int i = 0; i < n_dimensions; i++) {
+            
+            // From RAVE VST:
+            // """
             // The assert and casting here is needed as I got a:
             // warning: conversion to ‘std::array<std::atomic<float>*,
             // 8>::size_type’ {aka ‘long unsigned int’} from ‘int’ may change the
             // sign of the result [-Wsign-conversion]
             // Whatever AVAILABLE_DIMS type I defined
+            // """
             assert(i >= 0);
             auto i2 = (long unsigned int)i;
             float scale = _latentScale.at(i2).load();
@@ -577,7 +600,7 @@ void RaveWwiseFX::modelPerform()
 		AKPLATFORM::OutputDebugMsg("\n");
 #endif
 		// --------------------------------
-        // adding latent jitter on meaningful dimensions
+        // Add latent jitter on meaningful dimensions
         float jitter_amount = _latentJitterValue.load();
         latent_traj = latent_traj + jitter_amount * torch::randn_like(latent_traj);
 
@@ -588,7 +611,7 @@ void RaveWwiseFX::modelPerform()
 		AKPLATFORM::OutputDebugMsg("\n");
 #endif
 		// --------------------------------
-        // filling missing dimensions with width parameter
+        // Fill missing dimensions with width parameter
 
 		int missing_dims = _rave->getFullLatentDimensions() - latent_traj.size(1);
 
@@ -669,9 +692,12 @@ void RaveWwiseFX::modelPerform()
         }
 		AKPLATFORM::OutputDebugMsg("\n");
 #endif
-
+        
+        // From RAVE VST:
+        // """
         // On windows, I don't get why, but the two first dims are swapped (compared
         // to macOS / UNIX) with the same torch version
+        // """
         if (out.sizes()[0] == 2) {
             out = out.transpose(0, 1);
         }
