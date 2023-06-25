@@ -34,7 +34,7 @@ the specific language governing permissions and limitations under the License.
 
 #define DEBUG_PERFORM 1
 
-namespace RAVEWwise
+namespace RaveWwise
 {
 	void modelPerform_callback(RaveWwiseFX* ap) { ap->modelPerform(); }
 }
@@ -289,7 +289,7 @@ void RaveWwiseFX::Execute(AkAudioBuffer* in_pBuffer, AkUInt32 in_ulnOffset, AkAu
 		    _outBuffer[1].put(_outModel[1].get(), currentRefreshRate);
         //}
 
-		_computeThread = std::make_unique<std::thread>(RAVEWwise::modelPerform_callback, this);
+		_computeThread = std::make_unique<std::thread>(RaveWwise::modelPerform_callback, this);
 
 		//AKPLATFORM::OutputDebugMsg("\n");
 		//AKPLATFORM::OutputDebugMsg("_inModel: ");
@@ -818,5 +818,5 @@ void RaveWwiseFX::updateEngine(const std::string& modelFile)
         _engineThreadPool->purge();
     }
 
-    std::future<void> engineUpdateFuture = _engineThreadPool->submit(RAVEWwise::UpdateEngineJob, this, modelFile, 1);
+    std::future<void> engineUpdateFuture = _engineThreadPool->submit(RaveWwise::UpdateEngineJob, this, modelFile, 1);
 }

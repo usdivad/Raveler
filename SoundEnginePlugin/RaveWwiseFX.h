@@ -47,7 +47,7 @@ the specific language governing permissions and limitations under the License.
 //----------------------------------------------------------------------------------------------------------------------
 // TODO: Move these to their own files
 
-namespace RAVEWwise
+namespace RaveWwise
 {
     // Replacement for juce::NormalisableRange.
 
@@ -290,7 +290,7 @@ namespace RAVEWwise
 
 //----------------------------------------------------------------------------------------------------------------------
 
-namespace RAVEWwise
+namespace RaveWwise
 {
 	// Replacement for juce::SmoothedValue.
 
@@ -676,7 +676,7 @@ namespace RAVEWwise
     template <typename FloatType>
     using LinearSmoothedValue = SmoothedValue <FloatType, ValueSmoothingTypes::Linear>;
 
-} // namespace RAVEWwise
+} // namespace RaveWwise
 
 //----------------------------------------------------------------------------------------------------------------------
 
@@ -705,9 +705,9 @@ namespace rave_parameters {
 } // namespace rave_parameters
 
 namespace rave_ranges {
-	const RAVEWwise::NormalisableRange<float> gainRange(-70.f, 12.f);
-	const RAVEWwise::NormalisableRange<float> latentScaleRange(0.0f, 5.0f);
-	const RAVEWwise::NormalisableRange<float> latentBiasRange(-3.0f, 3.0f);
+	const RaveWwise::NormalisableRange<float> gainRange(-70.f, 12.f);
+	const RaveWwise::NormalisableRange<float> latentScaleRange(0.0f, 5.0f);
+	const RaveWwise::NormalisableRange<float> latentBiasRange(-3.0f, 3.0f);
 } // namespace rave_ranges
 
 
@@ -842,9 +842,9 @@ private:
     enum class muting : int { ignore = 0, mute, unmute };
 
     std::atomic<muting> _fadeScheduler{ muting::mute };
-    RAVEWwise::LinearSmoothedValue<float> _smoothedFadeInOut { };
-    RAVEWwise::LinearSmoothedValue<float> _smoothedWetGain { };
-    RAVEWwise::LinearSmoothedValue<float> _smoothedDryGain { };
+    RaveWwise::LinearSmoothedValue<float> _smoothedFadeInOut { };
+    RaveWwise::LinearSmoothedValue<float> _smoothedWetGain { };
+    RaveWwise::LinearSmoothedValue<float> _smoothedDryGain { };
 
     // TODO: DSP effects
     // - Compressor

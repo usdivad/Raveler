@@ -13,7 +13,7 @@
 using namespace torch::indexing;
 
 // TODO: Move this to its own file
-namespace RAVEWwise {
+namespace RaveWwise {
     
     // Replacement for juce::Range
     template <typename T>
@@ -255,8 +255,8 @@ public:
     return y;
   }
 
-  RAVEWwise::Range<float> getValidBufferSizes() {
-    return RAVEWwise::Range<float>(getModelRatio(), BUFFER_LENGTH);
+  RaveWwise::Range<float> getValidBufferSizes() {
+    return RaveWwise::Range<float>(getModelRatio(), BUFFER_LENGTH);
   }
 
   unsigned int getLatentDimensions() {
@@ -323,5 +323,5 @@ private:
   at::Tensor prior_params;
   at::Tensor latent_buffer;
   std::vector<torch::jit::IValue> inputs_rave;
-  RAVEWwise::Range<float> validBufferSizeRange;
+  RaveWwise::Range<float> validBufferSizeRange;
 };

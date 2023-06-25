@@ -4,7 +4,7 @@
 
 class RaveWwiseFX;
 
-namespace RAVEWwise
+namespace RaveWwise
 {
 	void UpdateEngineJob(RaveWwiseFX* processor, const std::string& modelFile, size_t fadeOutWaitTimeMs = 0);
 }
