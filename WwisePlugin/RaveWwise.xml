@@ -424,7 +424,7 @@ for the documentation about the plugin xml format
 
       <!-- Buffer -->
 
-      <Property Name="LatencyMode" Type="Uint32" SupportRTPCType="Exclusive" DisplayName="Latency Mode" DisplayGroup="Buffer">
+      <Property Name="LatencyMode" Type="Uint32" DisplayName="Latency Mode" DisplayGroup="Buffer">
         <DefaultValue>13</DefaultValue>
         <AudioEnginePropertyID>27</AudioEnginePropertyID>
         <Restrictions>

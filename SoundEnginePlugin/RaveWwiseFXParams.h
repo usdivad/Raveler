@@ -143,15 +143,15 @@ struct RaveWwiseRTPCParams
     AkReal32 fOutputDryWet;
     bool bOutputLimit;
 
-    // Buffer
-    AkUInt32 uLatencyMode;
-
     // Custom
     AkInt32 iLatencyCompensationSamples;
 };
 
 struct RaveWwiseNonRTPCParams
 {
+	// Buffer
+	AkUInt32 uLatencyMode;
+
 	// Custom
 	AkOSChar* sModelFilePath;
 };

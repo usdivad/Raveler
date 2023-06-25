@@ -102,6 +102,13 @@ AKRESULT RaveWwiseFX::Init(AK::IAkPluginMemAlloc* in_pAllocator, AK::IAkEffectPl
 	_outBuffer[0].initialize(BUFFER_LENGTH);
 	_outBuffer[1].initialize(BUFFER_LENGTH);
 
+
+	// --------
+	// Update non-RTPC params
+    // NOTE: _loadedModelName gets updated in UpdateEngine()
+
+	_latencyMode = _fxParams->NonRTPC.uLatencyMode;
+
     // --------
     // Load the model
 
@@ -110,6 +117,7 @@ AKRESULT RaveWwiseFX::Init(AK::IAkPluginMemAlloc* in_pAllocator, AK::IAkEffectPl
     // TODO: - Escape backslashes for file paths ("\" --> "\\")
     //       - Move the char-conversion/string-creation to RaveWwiseFXParams?
 	//       - Move entire model loading routine to plugin library registration step, to avoid re-loading unnecessarily with every effect instantiation at runtime? See https://www.audiokinetic.com/en/library/edge/?source=SDK&id=soundengine_plugins.html#fx_global_hooks
+    //       - Allow relative paths + figure out platform-dependent file path handling
 
     _modelLoaded = false;
     _modelLoadTimeSamples = 0;
