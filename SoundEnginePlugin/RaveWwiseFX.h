@@ -112,19 +112,12 @@ public:
 
 	void updateEngine(const std::string& modelFile);
 
-	double getSampleRate() const { return _sampleRate; }
-
     void setModelLoaded(bool loaded) { _modelLoaded = loaded; }
 
     //------------------------------------------------------------------------------------------------------------------
     // RaveAP variables
 
     std::unique_ptr<RAVE> _rave { nullptr };
-    float _inputAmplitudeL { 0.f };
-    float _inputAmplitudeR { 0.f };
-    float _outputAmplitudeL { 0.f };
-    float _outputAmplitudeR { 0.f };
-    bool _plays { false };
 
 private:
     //------------------------------------------------------------------------------------------------------------------
@@ -141,18 +134,12 @@ private:
     std::unique_ptr<BS::thread_pool> _engineThreadPool { nullptr };
     std::string _loadedModelName { };
 
-    // Allocate some memory to use as the circular_buffer storage for each of the circular_buffer types to be created
-    double _sampleRate { 0.0 };
     std::unique_ptr<circular_buffer<float, float>[]> _inBuffer { nullptr };
     std::unique_ptr<circular_buffer<float, float>[]> _dryBuffer { nullptr };
     std::unique_ptr<circular_buffer<float, float>[]> _outBuffer { nullptr };
-	std::vector<std::unique_ptr<float[]>> _inModel{ }, _outModel{ };
+
+    std::vector<std::unique_ptr<float[]>> _inModel{ }, _outModel{ };
     std::unique_ptr<std::thread> _computeThread { nullptr };
-
-    bool _editorReady { false };
-
-    float* _inFifoBuffer { nullptr };
-    float* _outFifoBuffer { nullptr };
 
     std::atomic<float> _inputGainValue { 0.f }; // range = rave_ranges::gainRange, default = 0
     std::atomic<float> _thresholdValue { 0.f }; // min = -60, max = 0, default = 0
@@ -172,11 +159,8 @@ private:
 
     std::array<std::atomic<float>, AVAILABLE_DIMS> _latentScale { 1.f };
     std::array<std::atomic<float>, AVAILABLE_DIMS> _latentBias { 0.f };
+    
     std::atomic<bool> _isMuted { true };
-
-    enum class muting : int { ignore = 0, mute, unmute };
-
-    std::atomic<muting> _fadeScheduler{ muting::mute };
 
 	//------------------------------------------------------------------------------------------------------------------
 	// Custom variables

@@ -75,8 +75,6 @@ RaveWwiseFX::RaveWwiseFX() : _fxParams(nullptr)
     _engineThreadPool = std::make_unique<BS::thread_pool>(1);
     
     _rave.reset(new RAVE());
-
-    _editorReady = false;
 }
 
 RaveWwiseFX::~RaveWwiseFX()
@@ -620,13 +618,11 @@ void RaveWwiseFX::detectAvailableModels()
 
 void RaveWwiseFX::mute()
 {
-    _fadeScheduler.store(muting::mute);
     _isMuted.store(true);
 }
 
 void RaveWwiseFX::unmute()
 {
-    _fadeScheduler.store(muting::unmute);
     _isMuted.store(false);
 }
 
