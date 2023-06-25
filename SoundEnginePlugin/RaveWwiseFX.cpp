@@ -475,7 +475,8 @@ void RaveWwiseFX::modelPerform()
 #endif
         // --------------------------------
         // Latent modifications
-        // apply scale and bias
+
+        // Apply scale and bias
         int64_t n_dimensions =
             std::min((int)latent_traj.size(1), (int)AVAILABLE_DIMS);
         for (int i = 0; i < n_dimensions; i++)
@@ -495,7 +496,7 @@ void RaveWwiseFX::modelPerform()
 		AKPLATFORM::OutputDebugMsg("Latent scale & bias applied");
 		AKPLATFORM::OutputDebugMsg("\n");
 #endif
-		// --------------------------------
+
         // Add latent jitter on meaningful dimensions
         float jitter_amount = _latentJitterValue.load();
         latent_traj = latent_traj + jitter_amount * torch::randn_like(latent_traj);
@@ -504,7 +505,7 @@ void RaveWwiseFX::modelPerform()
 		AKPLATFORM::OutputDebugMsg("Jitter applied");
 		AKPLATFORM::OutputDebugMsg("\n");
 #endif
-		// --------------------------------
+
         // Fill missing dimensions with width parameter
 
 		int missing_dims = _rave->getFullLatentDimensions() - latent_traj.size(1);
@@ -589,7 +590,7 @@ void RaveWwiseFX::modelPerform()
             out = out.transpose(0, 1);
         }
 
-		const int outIndexR = (out.sizes()[1] > 1 ? 1 : 0); // Use right channel if available
+		const int outIndexR = (out.sizes()[1] > 1 ? 1 : 0); // Use right channel only if available
 		at::Tensor outL = out.index({ 0, 0, at::indexing::Slice() });
 		at::Tensor outR = out.index({ 0, outIndexR, at::indexing::Slice() });
 
