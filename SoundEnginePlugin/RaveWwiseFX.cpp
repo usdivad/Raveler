@@ -55,10 +55,9 @@ AK::IAkPluginParam* CreateRaveWwiseFXParams(AK::IAkPluginMemAlloc* in_pAllocator
 
 AK_IMPLEMENT_PLUGIN_FACTORY(RaveWwiseFX, AkPluginTypeEffect, RaveWwiseConfig::CompanyID, RaveWwiseConfig::PluginID)
 
-RaveWwiseFX::RaveWwiseFX()
-    : m_pParams(nullptr)
-    , m_pAllocator(nullptr)
-    , m_pContext(nullptr)
+RaveWwiseFX::RaveWwiseFX() : _fxParams(nullptr)
+                           , _fxAllocator(nullptr)
+                           , _fxContext(nullptr)
 {
     _loadedModelName = "";
     _computeThread = nullptr;
@@ -93,9 +92,9 @@ AKRESULT RaveWwiseFX::Init(AK::IAkPluginMemAlloc* in_pAllocator, AK::IAkEffectPl
 	// --------
 	// Store effect plugin members
 
-    m_pParams = (RaveWwiseFXParams*)in_pParams;
-    m_pAllocator = in_pAllocator;
-    m_pContext = in_pContext;
+    _fxParams = (RaveWwiseFXParams*)in_pParams;
+    _fxAllocator = in_pAllocator;
+    _fxContext = in_pContext;
 
     // --------
     // Initialize circular buffers (from RaveAP::prepareToPlay())
@@ -120,7 +119,7 @@ AKRESULT RaveWwiseFX::Init(AK::IAkPluginMemAlloc* in_pAllocator, AK::IAkEffectPl
     _modelPerformTimeSamples = 0;
     _dryLatencySamplesElapsed = 0;
 
-    AkOSChar* modelFilePathOsStr = m_pParams->NonRTPC.sModelFilePath;
+    AkOSChar* modelFilePathOsStr = _fxParams->NonRTPC.sModelFilePath;
     char* modelFilePathCStr = reinterpret_cast<char*>(modelFilePathOsStr);
     std::string modelFilePath = std::string(modelFilePathCStr);
     updateEngine(modelFilePath);
@@ -157,8 +156,8 @@ void RaveWwiseFX::Execute(AkAudioBuffer* in_pBuffer, AkUInt32 in_ulnOffset, AkAu
     // Update RTPC params
 
     // TODO: Rest of params
-    _dryWetValue = m_pParams->RTPC.fOutputDryWet;
-    _additionalLatencyCompensation = m_pParams->RTPC.iLatencyCompensationSamples;
+    _dryWetValue = _fxParams->RTPC.fOutputDryWet;
+    _additionalLatencyCompensation = _fxParams->RTPC.iLatencyCompensationSamples;
 
 	// ----------------------------------------------------------------
     // Setup book-keeping

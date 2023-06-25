@@ -130,9 +130,9 @@ private:
     //------------------------------------------------------------------------------------------------------------------
     // Effect plugin variables
 
-    RaveWwiseFXParams* m_pParams { nullptr };
-    AK::IAkPluginMemAlloc* m_pAllocator { nullptr };
-    AK::IAkEffectPluginContext* m_pContext { nullptr };
+    RaveWwiseFXParams* _fxParams { nullptr };
+    AK::IAkPluginMemAlloc* _fxAllocator { nullptr };
+    AK::IAkEffectPluginContext* _fxContext { nullptr };
 
     //------------------------------------------------------------------------------------------------------------------
 	// RaveAP variables
