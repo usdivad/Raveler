@@ -230,7 +230,6 @@ public:
     inputs_rave.clear();
     inputs_rave.push_back(torch::ones({1, 1, getModelRatio()}));
     resetLatentBuffer();
-    //sendChangeMessage(); // TODO: Implement or remove
   }
 
   torch::Tensor sample_prior(const int n_steps, const float temperature) {
