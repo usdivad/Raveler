@@ -61,8 +61,6 @@ const std::vector<std::string> channel_modes = { "L", "R", "L + R" };
 /// See https://www.audiokinetic.com/library/edge/?source=SDK&id=soundengine__plugins__effects.html
 /// for the documentation about effect plug-ins
 
-// TODO: Capitalize ported function and variable names
-
 class RaveWwiseFX
     : public AK::IAkOutOfPlaceEffectPlugin
 {
@@ -99,23 +97,37 @@ public:
     AKRESULT TimeSkip(AkUInt32 &io_uFrames) override;
 
 	//------------------------------------------------------------------------------------------------------------------
-    // RaveAP functions
+    // RaveAP ported functions
 
-	void modelPerform();
-	void detectAvailableModels();
+    /// Perform RAVE model inference for an input buffer
+	void ModelPerform();
 
-	void mute();
-	void unmute();
-    bool getIsMuted() const { return _isMuted.load(); }
+    /// Detect the currently available models
+	void DetectAvailableModels();
+
+    /// Mute the effect plugin
+	void Mute();
+
+    /// Unmute the effect plugin
+	void Unmute();
+
+    /// Whether or not the plugin is currently muted
+    bool GetIsMuted() const { return _isMuted.load(); }
 	
-    void updateBufferSizes();
+    /// Update internal buffer sizes based on latency settings
+    void UpdateBufferSizes();
 
-	void updateEngine(const std::string& modelFile);
+    /// Update the engine (i.e. our internal RAVE instance) with a new model
+	void UpdateEngine(const std::string& modelFile);
 
-    void setModelLoaded(bool loaded) { _modelLoaded = loaded; }
+	/// Get whether a model has been loaded
+	bool GetModelLoaded() { return _modelLoaded; }
+
+    /// Set whether a model has been loaded
+    void SetModelLoaded(bool loaded) { _modelLoaded = loaded; }
 
     //------------------------------------------------------------------------------------------------------------------
-    // RaveAP variables
+    // RaveAP ported variables
 
     std::unique_ptr<RAVE> _rave { nullptr };
 
@@ -128,7 +140,7 @@ private:
     AK::IAkEffectPluginContext* _fxContext { nullptr };
 
     //------------------------------------------------------------------------------------------------------------------
-	// RaveAP variables
+	// RaveAP ported variables
 
     std::mutex _engineUpdateMutex { };
     std::unique_ptr<BS::thread_pool> _engineThreadPool { nullptr };

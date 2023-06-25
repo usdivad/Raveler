@@ -38,7 +38,7 @@ the specific language governing permissions and limitations under the License.
 
 namespace RaveWwise
 {
-	void modelPerform_callback(RaveWwiseFX* ap) { ap->modelPerform(); }
+	void modelPerform_callback(RaveWwiseFX* ap) { ap->ModelPerform(); }
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -120,7 +120,7 @@ AKRESULT RaveWwiseFX::Init(AK::IAkPluginMemAlloc* in_pAllocator, AK::IAkEffectPl
     AkOSChar* modelFilePathOsStr = _fxParams->NonRTPC.sModelFilePath;
     char* modelFilePathCStr = reinterpret_cast<char*>(modelFilePathOsStr);
     std::string modelFilePath = std::string(modelFilePathCStr);
-    updateEngine(modelFilePath);
+    UpdateEngine(modelFilePath);
 
     return AK_Success;
 }
@@ -363,7 +363,7 @@ AKRESULT RaveWwiseFX::TimeSkip(AkUInt32 &io_uFrames)
 
 //----------------------------------------------------------------------------------------------------------------------
 
-void RaveWwiseFX::modelPerform()
+void RaveWwiseFX::ModelPerform()
 {
     if (_rave.get() && !_isMuted.load()) {
         c10::InferenceMode guard(true);
@@ -378,7 +378,7 @@ void RaveWwiseFX::modelPerform()
 
 #if DEBUG_PERFORM
 		AKPLATFORM::OutputDebugMsg("\n");
-        AKPLATFORM::OutputDebugMsg("modelPerform():");
+        AKPLATFORM::OutputDebugMsg("ModelPerform():");
 		AKPLATFORM::OutputDebugMsg("\n");
 
         // Dump full model to string
@@ -615,29 +615,29 @@ void RaveWwiseFX::modelPerform()
     else {
 
 #if DEBUG_PERFORM
-        AKPLATFORM::OutputDebugMsg("modelPerform(): Sorry, model is not ready yet");
+        AKPLATFORM::OutputDebugMsg("ModelPerform(): Sorry, model is not ready yet");
         AKPLATFORM::OutputDebugMsg("\n");
 #endif
 
     }
 }
 
-void RaveWwiseFX::detectAvailableModels()
+void RaveWwiseFX::DetectAvailableModels()
 {
 	// TODO
 }
 
-void RaveWwiseFX::mute()
+void RaveWwiseFX::Mute()
 {
     _isMuted.store(true);
 }
 
-void RaveWwiseFX::unmute()
+void RaveWwiseFX::Unmute()
 {
     _isMuted.store(false);
 }
 
-void RaveWwiseFX::updateBufferSizes()
+void RaveWwiseFX::UpdateBufferSizes()
 {
     auto validBufferSizes = _rave->getValidBufferSizes();
     float a = validBufferSizes.start;
@@ -645,7 +645,7 @@ void RaveWwiseFX::updateBufferSizes()
 
 #if DEBUG_PERFORM
 	AKPLATFORM::OutputDebugMsg("\n");
-	AKPLATFORM::OutputDebugMsg("updateBufferSizes(): ");
+	AKPLATFORM::OutputDebugMsg("UpdateBufferSizes(): ");
 	AKPLATFORM::OutputDebugMsg("\n");
 
 	AKPLATFORM::OutputDebugMsg("Initial latency mode: ");
@@ -682,7 +682,7 @@ void RaveWwiseFX::updateBufferSizes()
     }
 }
 
-void RaveWwiseFX::updateEngine(const std::string& modelFile)
+void RaveWwiseFX::UpdateEngine(const std::string& modelFile)
 {
     if (modelFile == _loadedModelName)
     {
@@ -698,5 +698,8 @@ void RaveWwiseFX::updateEngine(const std::string& modelFile)
         _engineThreadPool->purge();
     }
 
-    std::future<void> engineUpdateFuture = _engineThreadPool->submit(RaveWwise::UpdateEngineJob, this, modelFile, 1);
+    std::future<void> engineUpdateFuture = _engineThreadPool->submit(RaveWwise::UpdateEngineJob,
+                                                                     this,
+                                                                     modelFile,
+                                                                     1);
 }
