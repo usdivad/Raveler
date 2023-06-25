@@ -153,14 +153,8 @@ private:
     std::vector<std::unique_ptr<float[]>> _inModel{ }, _outModel{ };
     std::unique_ptr<std::thread> _computeThread { nullptr };
 
-    std::atomic<float> _inputGainValue { 0.f }; // range = rave_ranges::gainRange, default = 0
-    std::atomic<float> _thresholdValue { 0.f }; // min = -60, max = 0, default = 0
-    std::atomic<float> _ratioValue { 1.f }; // min = 1, max = 10, default = 1
     std::atomic<float> _latentJitterValue { 0.f }; // min = 0, max = 3, default = 0
     std::atomic<float> _widthValue { 100.f }; // min = 0, max = 200, default = 100
-    std::atomic<float> _outputGainValue { 0.f }; // range = rave_ranges::gainRange, default = 0
-    std::atomic<float> _limitValue { 1.f }; // bool behavior, default = true
-    std::atomic<float> _channelMode { 1.f }; // min = 1, max = 3, default = 1
 
     // Latency mode contains the power of 2 of the current refresh rate.
     std::atomic<float> _latencyMode { 13 }; // min = 9, max = 15, default = 13
