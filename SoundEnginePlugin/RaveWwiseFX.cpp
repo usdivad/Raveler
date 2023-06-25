@@ -478,24 +478,16 @@ void RaveWwiseFX::modelPerform()
         // apply scale and bias
         int64_t n_dimensions =
             std::min((int)latent_traj.size(1), (int)AVAILABLE_DIMS);
-        for (int i = 0; i < n_dimensions; i++) {
-            
-            // From RAVE VST:
-            // """
-            // The assert and casting here is needed as I got a:
-            // warning: conversion to ‘std::array<std::atomic<float>*,
-            // 8>::size_type’ {aka ‘long unsigned int’} from ‘int’ may change the
-            // sign of the result [-Wsign-conversion]
-            // Whatever AVAILABLE_DIMS type I defined
-            // """
-            assert(i >= 0);
-            auto i2 = (long unsigned int)i;
-            const float scale = _latentScale.at(i2);
-            const float bias = _latentBias.at(i2);
+        for (int i = 0; i < n_dimensions; i++)
+        {
+            const float scale = _latentScale.at(i);
+            const float bias = _latentBias.at(i);
+
             latent_traj.index_put_({ 0, i },
                 (latent_traj.index({ 0, i }) * scale + bias));
-            latent_traj_mean.index_put_(
-                { 0, i }, (latent_traj_mean.index({ 0, i }) * scale + bias));
+            
+            latent_traj_mean.index_put_({ 0, i },
+                (latent_traj_mean.index({ 0, i }) * scale + bias));
         }
         _rave->writeLatentBuffer(latent_traj_mean);
 
