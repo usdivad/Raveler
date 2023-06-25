@@ -164,9 +164,6 @@ private:
 
     // Latency mode contains the power of 2 of the current refresh rate.
     std::atomic<float> _latencyMode { 13 }; // min = 9, max = 15, default = 13
-    
-    std::atomic<float> _usePrior { 0.f }; // bool behavior, default = false
-    std::atomic<float> _priorTemperature { 1.f }; // min = 0, max = 5, default = 1
 
     std::array<float, AVAILABLE_DIMS> _latentScale { 1.f };
     std::array<float, AVAILABLE_DIMS> _latentBias { 0.f };

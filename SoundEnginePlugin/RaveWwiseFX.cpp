@@ -376,13 +376,18 @@ void RaveWwiseFX::ModelPerform()
     if (_rave.get() && !_isMuted.load()) {
         c10::InferenceMode guard(true);
 
+		at::Tensor latent_traj;
+		at::Tensor latent_traj_mean;
+
         // --------------------------------
         // Setup parameters
 
+        // Non-RTPC
         int input_size = static_cast<int>(pow(2, _latencyMode));
 
-        at::Tensor latent_traj;
-        at::Tensor latent_traj_mean;
+        // RTPC
+		const bool usePrior = _fxParams->RTPC.bUsePrior;
+		const float priorTemperature = _fxParams->RTPC.fPriorTemperature;
 
 #if DEBUG_PERFORM
 		AKPLATFORM::OutputDebugMsg("\n");
@@ -404,17 +409,18 @@ void RaveWwiseFX::ModelPerform()
 		AKPLATFORM::OutputDebugMsg("Has prior: ");
 		AKPLATFORM::OutputDebugMsg(std::to_string(_rave->hasPrior()).c_str());
 		AKPLATFORM::OutputDebugMsg(", Use prior: ");
-		AKPLATFORM::OutputDebugMsg(std::to_string(_usePrior).c_str());
+		AKPLATFORM::OutputDebugMsg(std::to_string(usePrior).c_str());
 		AKPLATFORM::OutputDebugMsg("\n");
 
 		AKPLATFORM::OutputDebugMsg("Prior temperature: ");
-		AKPLATFORM::OutputDebugMsg(std::to_string(_priorTemperature).c_str());
+		AKPLATFORM::OutputDebugMsg(std::to_string(priorTemperature).c_str());
 		AKPLATFORM::OutputDebugMsg("\n");
 #endif
 
-        if (_rave->hasPrior() && _usePrior) {
+        if (_rave->hasPrior() && usePrior) {
+            // TODO: Prior performance seems choppy -- this is also the case with RAVE VST on Windows
             auto n_trajs = pow(2, _latencyMode) / _rave->getModelRatio();
-            latent_traj = _rave->sample_prior((int)n_trajs, _priorTemperature);
+            latent_traj = _rave->sample_prior((int)n_trajs, priorTemperature);
             latent_traj_mean = latent_traj;
         }
         else {

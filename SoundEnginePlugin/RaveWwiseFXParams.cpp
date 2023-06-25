@@ -120,7 +120,7 @@ AKRESULT RaveWwiseFXParams::SetParamsBlock(const void* in_pParamsBlock, AkUInt32
 
 	RTPC.fLatentJitter = READBANKDATA(AkReal32, pParamsBlock, in_ulBlockSize);
 	RTPC.fOutputWidth = READBANKDATA(AkReal32, pParamsBlock, in_ulBlockSize);
-	RTPC.bUsePrior = READBANKDATA(bool, pParamsBlock, in_ulBlockSize);
+	RTPC.bUsePrior = READBANKDATA(AkReal32, pParamsBlock, in_ulBlockSize) != 0;
 	RTPC.fPriorTemperature = READBANKDATA(AkReal32, pParamsBlock, in_ulBlockSize);
 
 	RTPC.fLatent1Bias = READBANKDATA(AkReal32, pParamsBlock, in_ulBlockSize);
@@ -182,7 +182,7 @@ AKRESULT RaveWwiseFXParams::SetParam(AkPluginParamID in_paramID, const void* in_
 		m_paramChangeHandler.SetParamChange(PARAM_OUTPUT_WIDTH_ID);
 		break;
 	case PARAM_USE_PRIOR_ID:
-		RTPC.bUsePrior = *((bool*)in_pValue);
+		RTPC.bUsePrior = (*((AkReal32*)in_pValue) != 0);
 		m_paramChangeHandler.SetParamChange(PARAM_USE_PRIOR_ID);
 		break;
 	case PARAM_PRIOR_TEMPERATURE_ID:
