@@ -133,7 +133,7 @@ for the documentation about the plugin xml format
       </Property>
 
       <Property Name="UsePrior" Type="bool" SupportRTPCType="Boolean" ForceRTPCCurveSegmentShape="Constant" DisplayName="Use Prior" DisplayGroup="Model">
-        <DefaultValue>true</DefaultValue>
+        <DefaultValue>false</DefaultValue>
         <AudioEnginePropertyID>6</AudioEnginePropertyID>
       </Property>
 

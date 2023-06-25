@@ -56,14 +56,13 @@ AKRESULT RaveWwiseFXParams::Init(AK::IAkPluginMemAlloc* in_pAllocator, const voi
 
 		RTPC.fInputGain = 0.f;
 		RTPC.uChannelMode = static_cast<AkUInt32>(EChannelMode::Left);
-		//RTPC.uChannelMode = 0;
 
 		RTPC.fInputThreshold = 0.f;
 		RTPC.fInputRatio = 1.f;
 
 		RTPC.fLatentJitter = 0.f;
 		RTPC.fOutputWidth = 100.f;
-		RTPC.bUsePrior = true;
+		RTPC.bUsePrior = false; // Originally true in RAVE VST, but results in choppy performance on Windows
 		RTPC.fPriorTemperature = 1.f;
 
 		RTPC.fLatent1Bias = 0.f;
