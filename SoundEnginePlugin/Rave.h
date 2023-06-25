@@ -8,8 +8,11 @@
 //----------------------------------------------------------------------------------------------------------------------
 
 #define MAX_LATENT_BUFFER_SIZE 32
+
 #define BUFFER_LENGTH 32768
 #define DRY_BUFFER_LENGTH BUFFER_LENGTH * 4 // Increase dry buffer size to account for latency compensation settings
+
+#define DEBUG_MODEL 0
 
 using namespace torch::indexing;
 
@@ -49,16 +52,15 @@ public:
       c10::InferenceMode guard;
       this->model = torch::jit::load(rave_model_file);
     } catch (const c10::Error &e) {
-      std::cerr << e.what();
-      std::cerr << e.msg();
-      std::cerr << "error loading the model\n";
 
+#if DEBUG_MODEL
 	  AKPLATFORM::OutputDebugMsg("\n[ ] RAVE - Error loading model: ");
 	  AKPLATFORM::OutputDebugMsg(rave_model_file.c_str());
 	  AKPLATFORM::OutputDebugMsg("\t // ");
 	  AKPLATFORM::OutputDebugMsg(e.what());
 	  AKPLATFORM::OutputDebugMsg("\t // ");
 	  AKPLATFORM::OutputDebugMsg(e.msg().c_str());
+#endif
 
       return;
     }
@@ -69,147 +71,160 @@ public:
     this->has_prior = false;
     this->prior_params = torch::zeros({0});
 
-    std::cout << "[ ] RAVE - Model successfully loaded: " << rave_model_file
-              << std::endl;
-
+#if DEBUG_MODEL
     AKPLATFORM::OutputDebugMsg("\n[ ] RAVE - Model successfully loaded: ");
     AKPLATFORM::OutputDebugMsg(rave_model_file.c_str());
 	AKPLATFORM::OutputDebugMsg("\n");
+#endif
 
     bool found_model_as_attribute = false; // TODO: Check by module type instead (e.g. Combined vs. ScriptedRAVE)?
 	for (auto const& attr : named_attributes) {
 		if (attr.name == "_rave") {
 			found_model_as_attribute = true;
 
-			std::cout << "Found _rave model as named attribute" << std::endl;
-
+#if DEBUG_MODEL
             AKPLATFORM::OutputDebugMsg("Found _rave model as named attribute");
-			AKPLATFORM::OutputDebugMsg("\n");            
+			AKPLATFORM::OutputDebugMsg("\n");
+#endif
+
 		}
 		else if (attr.name == "stereo" || attr.name == "_rave.stereo") {
 			stereo = attr.value.toBool();
 
-			std::cout << "Stereo?" << (stereo ? "true" : "false") << std::endl;
-
+#if DEBUG_MODEL
 			AKPLATFORM::OutputDebugMsg("Stereo? ");
 			AKPLATFORM::OutputDebugMsg(stereo ? "true" : "false");
 			AKPLATFORM::OutputDebugMsg("\n");
+#endif
+
 		}
 	}
 
 	if (found_model_as_attribute)
 	{
 		// Named buffers (for RAVE v1)
+#if DEBUG_MODEL
 		AKPLATFORM::OutputDebugMsg("\n");
 		AKPLATFORM::OutputDebugMsg("Using named buffers");
 		AKPLATFORM::OutputDebugMsg("\n");
+#endif
 
 		for (auto const& buf : named_buffers) {
 			if (buf.name == "_rave.sampling_rate") {
 				this->sr = buf.value.item<int>();
 
-				std::cout << "\tSampling rate: " << this->sr << std::endl;
-
+#if DEBUG_MODEL
 				AKPLATFORM::OutputDebugMsg("\tSampling rate: ");
 				AKPLATFORM::OutputDebugMsg(std::to_string(this->sr).c_str());
+#endif
 			}
 			if (buf.name == "_rave.latent_size") {
 				this->latent_size = buf.value.item<int>();
 
-				std::cout << "\tLatent size: " << this->latent_size << std::endl;
-
+#if DEBUG_MODEL
 				AKPLATFORM::OutputDebugMsg("\tLatent size: ");
 				AKPLATFORM::OutputDebugMsg(std::to_string(this->latent_size).c_str());
+#endif
+
 			}
 			if (buf.name == "encode_params") {
 				this->encode_params = buf.value;
 
-				std::cout << "\tEncode parameters: " << this->encode_params
-					<< std::endl;
-
+#if DEBUG_MODEL
 				AKPLATFORM::OutputDebugMsg("\tEncode parameters: ");
 				AKPLATFORM::OutputDebugMsg(this->encode_params.toString().c_str());
+#endif
+
 			}
 			if (buf.name == "decode_params") {
 				this->decode_params = buf.value;
 
-				std::cout << "\tDecode parameters: " << this->decode_params
-					<< std::endl;
-
+#if DEBUG_MODEL
 				AKPLATFORM::OutputDebugMsg("\tDecode parameters: ");
 				AKPLATFORM::OutputDebugMsg(this->decode_params.toString().c_str());
+#endif
+
 			}
 			if (buf.name == "prior_params") {
 				this->prior_params = buf.value;
 				this->has_prior = true;
 
-				std::cout << "\tPrior parameters: " << this->prior_params << std::endl;
-
+#if DEBUG_MODEL
 				AKPLATFORM::OutputDebugMsg("\tPrior parameters: ");
 				AKPLATFORM::OutputDebugMsg(this->prior_params.toString().c_str());
+#endif
+
 			}
 		}
 	}
 	else
 	{
 		// Named attributes (for ONNX / RAVE v2)
+
+#if DEBUG_MODEL
 		AKPLATFORM::OutputDebugMsg("\n");
 		AKPLATFORM::OutputDebugMsg("Using named attributes");
 		AKPLATFORM::OutputDebugMsg("\n");
+#endif
 
 		for (auto const& attr : named_attributes) {
 			if (attr.name == "sampling_rate") {
 				this->sr = attr.value.toInt();
-				std::cout << "\tSampling rate: " << this->sr << std::endl;
 
+#if DEBUG_MODEL
 				AKPLATFORM::OutputDebugMsg("\tSampling rate: ");
 				AKPLATFORM::OutputDebugMsg(std::to_string(this->sr).c_str());
+#endif
+
 			}
 			if (attr.name == "full_latent_size") { // TODO: Keep track of "latent_size" as well?
 				this->latent_size = attr.value.toInt();
-				std::cout << "\tLatent size: " << this->latent_size << std::endl;
 
+#if DEBUG_MODEL
 				AKPLATFORM::OutputDebugMsg("\tLatent size: ");
 				AKPLATFORM::OutputDebugMsg(std::to_string(this->latent_size).c_str());
+#endif
+
 			}
 			if (attr.name == "encode_params") {
 				this->encode_params = attr.value.toTensor();
-				std::cout << "\tEncode parameters: " << this->encode_params
-					<< std::endl;
 
+#if DEBUG_MODEL
 				AKPLATFORM::OutputDebugMsg("\tEncode parameters: ");
 				AKPLATFORM::OutputDebugMsg(this->encode_params.toString().c_str());
+#endif
+
 			}
 			if (attr.name == "decode_params") {
 				this->decode_params = attr.value.toTensor();
-				std::cout << "\tDecode parameters: " << this->decode_params
-					<< std::endl;
 
+#if DEBUG_MODEL
 				AKPLATFORM::OutputDebugMsg("\tDecode parameters: ");
 				AKPLATFORM::OutputDebugMsg(this->decode_params.toString().c_str());
+#endif
+
 			}
 			if (attr.name == "prior_params") {
 				this->prior_params = attr.value.toTensor();
 				this->has_prior = true;
-				std::cout << "\tPrior parameters: " << this->prior_params << std::endl;
 
+#if DEBUG_MODEL
 				AKPLATFORM::OutputDebugMsg("\tPrior parameters: ");
 				AKPLATFORM::OutputDebugMsg(this->prior_params.toString().c_str());
+#endif
 			}
 		}
 	}
     
-    std::cout << "\tFull latent size: " << getFullLatentDimensions()
-              << std::endl;
+#if DEBUG_MODEL
 	AKPLATFORM::OutputDebugMsg("\tFull latent size: ");
 	AKPLATFORM::OutputDebugMsg(std::to_string(getFullLatentDimensions()).c_str());
 
-    std::cout << "\tRatio: " << getModelRatio() << std::endl;
 	AKPLATFORM::OutputDebugMsg("\tRatio: ");
 	AKPLATFORM::OutputDebugMsg(std::to_string(getModelRatio()).c_str());
 
 	AKPLATFORM::OutputDebugMsg("\n");
-
+#endif
 
     c10::InferenceMode guard;
     inputs_rave.clear();
