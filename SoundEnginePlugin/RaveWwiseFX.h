@@ -750,7 +750,7 @@ public:
     AKRESULT GetPluginInfo(AkPluginInfo& out_rPluginInfo) override;
 
     /// Effect plug-in DSP execution.
-    void Execute(AkAudioBuffer* in_pBuffer, AkUInt32 in_ulnOffset, AkAudioBuffer* out_pBuffer) override;
+    void Execute(AkAudioBuffer* in_pBuffer, AkUInt32 in_uOffset, AkAudioBuffer* out_pBuffer) override;
 
     /// Skips execution of some frames, when the voice is virtual playing from elapsed time.
     /// This can be used to simulate processing that would have taken place (e.g. update internal state).
@@ -773,6 +773,7 @@ public:
 
 	double getSampleRate() const { return _sampleRate; }
 
+    void setModelLoaded(bool loaded) { _modelLoaded = loaded; }
 
     //------------------------------------------------------------------------------------------------------------------
     // RaveAP variables
@@ -807,6 +808,7 @@ private:
     // Allocate some memory to use as the circular_buffer storage for each of the circular_buffer types to be created
     double _sampleRate { 0.0 };
     std::unique_ptr<circular_buffer<float, float>[]> _inBuffer { nullptr };
+    std::unique_ptr<circular_buffer<float, float>[]> _dryBuffer { nullptr };
     std::unique_ptr<circular_buffer<float, float>[]> _outBuffer { nullptr };
     //std::vector<float*> _inModel { }, _outModel { };
 	std::vector<std::unique_ptr<float[]>> _inModel{ }, _outModel{ };
@@ -850,6 +852,15 @@ private:
     // - Output gain
     // - Limiter
     // - Dry/wet mixer
+
+	//------------------------------------------------------------------------------------------------------------------
+	// Custom variables
+
+    bool _modelLoaded = false;
+    int _modelLoadTimeSamples = 0;
+    bool _modelPerformed = false;
+    int _modelPerformTimeSamples = 0;
+    int _dryLatencySamplesElapsed = 0;
 };
 
 #endif // RaveWwiseFX_H

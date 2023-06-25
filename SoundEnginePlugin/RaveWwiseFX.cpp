@@ -66,6 +66,7 @@ RaveWwiseFX::RaveWwiseFX()
     //_dryWetMixerEffect.setMixingRule(juce::dsp::DryWetMixingRule::balanced);
 
     _inBuffer = std::make_unique<circular_buffer<float, float>[]>(1);
+	_dryBuffer = std::make_unique<circular_buffer<float, float>[]>(1);
     _outBuffer = std::make_unique<circular_buffer<float, float>[]>(2);
 	_inModel.push_back(std::make_unique<float[]>(BUFFER_LENGTH));
 	_outModel.push_back(std::make_unique<float[]>(BUFFER_LENGTH));
@@ -113,6 +114,7 @@ AKRESULT RaveWwiseFX::Init(AK::IAkPluginMemAlloc* in_pAllocator, AK::IAkEffectPl
 
 	//_sampleRate = sampleRate;
 	_inBuffer[0].initialize(BUFFER_LENGTH);
+	_dryBuffer[0].initialize(BUFFER_LENGTH * 2); // Double buffer length to account for latency
 	_outBuffer[0].initialize(BUFFER_LENGTH);
 	_outBuffer[1].initialize(BUFFER_LENGTH);
 	//setLatencySamples(pow(2, *_latencyMode));
@@ -125,6 +127,12 @@ AKRESULT RaveWwiseFX::Init(AK::IAkPluginMemAlloc* in_pAllocator, AK::IAkEffectPl
     // TODO: - Escape backslashes for file paths ("\" --> "\\")
     //       - Move the char-conversion/string-creation to RaveWwiseFXParams?
 	//       - Move entire model loading routine to plugin library registration step, to avoid re-loading unnecessarily with every effect instantiation at runtime? See https://www.audiokinetic.com/en/library/edge/?source=SDK&id=soundengine_plugins.html#fx_global_hooks
+
+    _modelLoaded = false;
+    _modelLoadTimeSamples = 0;
+    _modelPerformed = false;
+    _modelPerformTimeSamples = 0;
+    _dryLatencySamplesElapsed = 0;
 
     AkOSChar* modelFilePathOsStr = m_pParams->NonRTPC.sModelFilePath;
     char* modelFilePathCStr = reinterpret_cast<char*>(modelFilePathOsStr);
@@ -164,14 +172,30 @@ void RaveWwiseFX::Execute(AkAudioBuffer* in_pBuffer, AkUInt32 in_ulnOffset, AkAu
 {
     const AkUInt32 uNumChannels = in_pBuffer->NumChannels();
 
-    // --------
-	// RAVE
+	// ----------------------------------------------------------------
+    // Update RTPC params
 
+    // TODO: Rest of params
+    _dryWetValue = m_pParams->RTPC.fOutputDryWet;
+
+	// ----------------------------------------------------------------
+    // Setup book-keeping
+
+	// RAVE
     const int nSamples = in_pBuffer->uValidFrames;
 	const int nChannels = (const int)uNumChannels;
     
-    // --------
+    if (!_modelLoaded)
+    {
+        _modelLoadTimeSamples += nSamples;
+    }
 
+    if (!_modelPerformed)
+    {
+        _modelPerformTimeSamples += nSamples;
+    }
+    
+    // Wwise out-of-place effect plugin
 	AkUInt16 uFramesConsumed = 0;
 	AkUInt16 uFramesProduced = 0;
 
@@ -194,7 +218,7 @@ void RaveWwiseFX::Execute(AkAudioBuffer* in_pBuffer, AkUInt32 in_ulnOffset, AkAu
 
 
 	// ----------------------------------------------------------------
-	// RAVE
+	// Push input buffer contents to circular buffer
 
     if (nChannels < 1)
     {
@@ -206,9 +230,12 @@ void RaveWwiseFX::Execute(AkAudioBuffer* in_pBuffer, AkUInt32 in_ulnOffset, AkAu
 	AkReal32* AK_RESTRICT pInBuf = (AkReal32 * AK_RESTRICT)in_pBuffer->GetChannel(0) + in_ulnOffset;
     for (size_t i = 0; i < nSamples; ++i)
     {
-        //_inBuffer[0].put(pInBuf, nSamples);
-        _inBuffer[0].push((float)(pInBuf[i]));
-
+        //if (_modelLoaded)
+        //{ 
+            //_inBuffer[0].put(pInBuf, nSamples);
+            _inBuffer[0].push((float)(pInBuf[i]));
+            //_dryBuffer[0].push((float)(pInBuf[i]));
+        //}
         //AKPLATFORM::OutputDebugMsg(std::to_string(pInBuf[i]).c_str());
         //AKPLATFORM::OutputDebugMsg(", ");
     }
@@ -230,20 +257,35 @@ void RaveWwiseFX::Execute(AkAudioBuffer* in_pBuffer, AkUInt32 in_ulnOffset, AkAu
 	//	_inBuffer[0].put(channelL, nSamples);
 	//}
 
+	// ----------------------------------------------------------------
 	// Create processing thread
+
 	int currentRefreshRate = pow(2, _latencyMode);
+
 	if (_inBuffer[0].len() >= currentRefreshRate) {
 		if (_computeThread) {
 
 #if DEBUG_PERFORM
 			std::cout << "joining..." << std::endl;
+			AKPLATFORM::OutputDebugMsg("Joining... ");
+			AKPLATFORM::OutputDebugMsg("\n");
 #endif
 
 			_computeThread->join();
 		}
 		_inBuffer[0].get(_inModel[0].get(), currentRefreshRate);
-		_outBuffer[0].put(_outModel[0].get(), currentRefreshRate);
-		_outBuffer[1].put(_outModel[1].get(), currentRefreshRate);
+
+        for (int i = 0; i < currentRefreshRate; ++i)
+        {
+            _dryBuffer[0].push(_inModel[0][i]);
+        }
+
+        //if (_modelLoaded)
+        //{ 
+		    _outBuffer[0].put(_outModel[0].get(), currentRefreshRate);
+		    _outBuffer[1].put(_outModel[1].get(), currentRefreshRate);
+        //}
+
 		_computeThread = std::make_unique<std::thread>(RAVEWwise::modelPerform_callback, this);
 
 		//AKPLATFORM::OutputDebugMsg("\n");
@@ -271,9 +313,34 @@ void RaveWwiseFX::Execute(AkAudioBuffer* in_pBuffer, AkUInt32 in_ulnOffset, AkAu
 
 	AKPLATFORM::OutputDebugMsg("_inBuffer[0].len() = ");
 	AKPLATFORM::OutputDebugMsg(std::to_string(_inBuffer[0].len()).c_str());
+	AKPLATFORM::OutputDebugMsg(", _dryBuffer[0].len() = ");
+	AKPLATFORM::OutputDebugMsg(std::to_string(_dryBuffer[0].len()).c_str());
 	AKPLATFORM::OutputDebugMsg(", _outBuffer[0].len() = ");
 	AKPLATFORM::OutputDebugMsg(std::to_string(_outBuffer[0].len()).c_str());
     AKPLATFORM::OutputDebugMsg("\n");
+
+    // ----------------------------------------------------------------
+    // Write to final output buffer
+
+	const int dryWetLatency = _modelLoadTimeSamples + nSamples; // + currentRefreshRate;
+    //const int dryWetLatency = _modelPerformTimeSamples - currentRefreshRate;
+	AKPLATFORM::OutputDebugMsg("dryWetLatency = ");
+	AKPLATFORM::OutputDebugMsg(std::to_string(dryWetLatency).c_str());
+	AKPLATFORM::OutputDebugMsg(" (currentRefreshRate = ");
+	AKPLATFORM::OutputDebugMsg(std::to_string(currentRefreshRate).c_str());
+	AKPLATFORM::OutputDebugMsg(" (nSamples = ");
+	AKPLATFORM::OutputDebugMsg(std::to_string(nSamples).c_str());
+	AKPLATFORM::OutputDebugMsg(", _modelLoadTimeSamples = ");
+	AKPLATFORM::OutputDebugMsg(std::to_string(_modelLoadTimeSamples).c_str());
+	AKPLATFORM::OutputDebugMsg(", _modelPerformTimeSamples = ");
+	AKPLATFORM::OutputDebugMsg(std::to_string(_modelPerformTimeSamples).c_str());
+	AKPLATFORM::OutputDebugMsg(")");
+	AKPLATFORM::OutputDebugMsg("\n");
+
+	//if (_dryLatencySamplesElapsed < dryWetLatency)
+	//{
+	//	_dryLatencySamplesElapsed += nSamples;
+	//}
 
 	if (_outBuffer[0].len() >= nSamples) {
 		AkReal32* AK_RESTRICT pOutBufL = (AkReal32 * AK_RESTRICT)out_pBuffer->GetChannel(0) + out_pBuffer->uValidFrames;
@@ -284,13 +351,36 @@ void RaveWwiseFX::Execute(AkAudioBuffer* in_pBuffer, AkUInt32 in_ulnOffset, AkAu
 
         for (size_t i = 0; i < nSamples; i++)
         {
-            AkReal32 sampleValueL = _outBuffer[0].pop();
-            AkReal32 sampleValueR = _outBuffer[1].pop();
+            const float wetSampleValueL = _outBuffer[0].pop();
+            const float wetSampleValueR = _outBuffer[1].pop();
+
+            //const float drySampleValue = _inBuffer[0].peek(i);
+            //int dryIndex = i - dryWetLatency;
+            //const float drySampleValue = _dryBuffer[0].peek(i, dryWetLatency);
+
+            // Delay dry signal based on latency to align with wet signal
+            float drySampleValue = 0.f;
+            if (_dryLatencySamplesElapsed >= dryWetLatency)
+            { 
+                drySampleValue = _dryBuffer[0].pop();
+            }
+            else
+            {
+                _dryLatencySamplesElapsed++;
+            }
 
             if (i < out_pBuffer->MaxFrames())
-            { 
-                pOutBufL[i] = sampleValueL;
-                pOutBufR[i] = sampleValueR;
+            {
+                const float wetAmount = _dryWetValue * 0.01f;
+                const float dryAmount = 1.f - wetAmount;
+
+                //const float drySampleValue = _inModel[0][i];
+
+                const AkReal32 outputSampleValueL = (dryAmount * drySampleValue) + (wetAmount * wetSampleValueL);
+				const AkReal32 outputSampleValueR = (dryAmount * drySampleValue) + (wetAmount * wetSampleValueR);
+
+                pOutBufL[i] = outputSampleValueL;
+                pOutBufR[i] = outputSampleValueR;
             }
         }
 
@@ -302,6 +392,21 @@ void RaveWwiseFX::Execute(AkAudioBuffer* in_pBuffer, AkUInt32 in_ulnOffset, AkAu
 	}
 	else {
 		//out_buffer.clear();
+
+        // Clear output buffers
+        // TODO: Clear all channels, not just L/R
+
+		//AkReal32* AK_RESTRICT pOutBufL = (AkReal32 * AK_RESTRICT)out_pBuffer->GetChannel(0) + out_pBuffer->uValidFrames;
+		//AkReal32* AK_RESTRICT pOutBufR = (AkReal32 * AK_RESTRICT)out_pBuffer->GetChannel(1) + out_pBuffer->uValidFrames;
+
+		//for (size_t i = 0; i < nSamples; i++)
+		//{
+		//	pOutBufL[i] = 0.f;
+		//	pOutBufR[i] = 0.f;
+		//}
+
+        //uFramesProduced = nSamples;
+
 		AKPLATFORM::OutputDebugMsg("Waiting...");
 		AKPLATFORM::OutputDebugMsg("\n");
 	}
@@ -321,6 +426,7 @@ void RaveWwiseFX::Execute(AkAudioBuffer* in_pBuffer, AkUInt32 in_ulnOffset, AkAu
 //#endif
 
     // ----------------------------------------------------------------
+    // Update effect plugin state
 
 	in_pBuffer->uValidFrames -= uFramesConsumed;
 	out_pBuffer->uValidFrames += uFramesProduced;
@@ -599,6 +705,12 @@ void RaveWwiseFX::modelPerform()
         //if (_smoothedFadeInOut.getCurrentValue() < EPSILON) {
         //    _isMuted.store(true);
         //}
+
+        _modelPerformed = true;
+    }
+    else {
+        AKPLATFORM::OutputDebugMsg("modelPerform(): Sorry, model is not ready yet");
+        AKPLATFORM::OutputDebugMsg("\n");
     }
 }
 
