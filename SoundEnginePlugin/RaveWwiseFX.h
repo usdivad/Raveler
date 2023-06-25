@@ -750,7 +750,7 @@ public:
     AKRESULT GetPluginInfo(AkPluginInfo& out_rPluginInfo) override;
 
     /// Effect plug-in DSP execution.
-    void Execute(AkAudioBuffer* in_pBuffer, AkUInt32 in_uOffset, AkAudioBuffer* out_pBuffer) override;
+    void Execute(AkAudioBuffer* in_pBuffer, AkUInt32 in_ulOffset, AkAudioBuffer* out_pBuffer) override;
 
     /// Skips execution of some frames, when the voice is virtual playing from elapsed time.
     /// This can be used to simulate processing that would have taken place (e.g. update internal state).
@@ -861,6 +861,8 @@ private:
     bool _modelPerformed = false;
     int _modelPerformTimeSamples = 0;
     int _dryLatencySamplesElapsed = 0;
+    int _additionalLatencyCompensation = 0;
+
 };
 
 #endif // RaveWwiseFX_H

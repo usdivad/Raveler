@@ -448,6 +448,19 @@ for the documentation about the plugin xml format
         <DefaultValue></DefaultValue>
         <AudioEnginePropertyID>28</AudioEnginePropertyID>
       </Property>
+		
+      <Property Name="LatencyCompensationSamples" Type="int32" SupportRTPCType="Exclusive" DisplayName="Latency Compensation (Samples)" DisplayGroup="Buffer">
+        <DefaultValue>0</DefaultValue>
+        <AudioEnginePropertyID>29</AudioEnginePropertyID>
+        <Restrictions>
+          <ValueRestriction>
+            <Range Type="int32">
+              <Min>-16384</Min>
+              <Max>16384</Max>
+            </Range>
+          </ValueRestriction>
+        </Restrictions>
+      </Property>
 
     </Properties>
   </EffectPlugin>

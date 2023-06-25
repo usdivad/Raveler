@@ -79,10 +79,10 @@ static const AkPluginParamID PARAM_LATENCY_MODE_ID = 27;
 
 // Custom
 static const AkPluginParamID PARAM_MODEL_FILE_PATH_ID = 28;
-
+static const AkInt32 PARAM_LATENCY_COMPENSATION_ID = 29;
 
 // Num params
-static const AkUInt32 NUM_PARAMS = 29;
+static const AkUInt32 NUM_PARAMS = 30;
 
 // ----------------------------------------------------------------
 
@@ -145,6 +145,9 @@ struct RaveWwiseRTPCParams
 
     // Buffer
     AkUInt32 uLatencyMode;
+
+    // Custom
+    AkInt32 iLatencyCompensationSamples;
 };
 
 struct RaveWwiseNonRTPCParams

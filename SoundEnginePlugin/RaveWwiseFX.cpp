@@ -177,6 +177,7 @@ void RaveWwiseFX::Execute(AkAudioBuffer* in_pBuffer, AkUInt32 in_ulnOffset, AkAu
 
     // TODO: Rest of params
     _dryWetValue = m_pParams->RTPC.fOutputDryWet;
+    _additionalLatencyCompensation = m_pParams->RTPC.iLatencyCompensationSamples;
 
 	// ----------------------------------------------------------------
     // Setup book-keeping
@@ -323,13 +324,15 @@ void RaveWwiseFX::Execute(AkAudioBuffer* in_pBuffer, AkUInt32 in_ulnOffset, AkAu
     // Write to final output buffer
 
 	//const int dryWetLatency = _modelLoadTimeSamples + nSamples; // + currentRefreshRate;
-    const int dryWetLatency = _modelPerformTimeSamples; // - currentRefreshRate;
+    const int dryWetLatency = _modelPerformTimeSamples + _additionalLatencyCompensation; // - currentRefreshRate;
 	AKPLATFORM::OutputDebugMsg("dryWetLatency = ");
 	AKPLATFORM::OutputDebugMsg(std::to_string(dryWetLatency).c_str());
 	AKPLATFORM::OutputDebugMsg(" (currentRefreshRate = ");
 	AKPLATFORM::OutputDebugMsg(std::to_string(currentRefreshRate).c_str());
-	AKPLATFORM::OutputDebugMsg(" (nSamples = ");
+	AKPLATFORM::OutputDebugMsg(", nSamples = ");
 	AKPLATFORM::OutputDebugMsg(std::to_string(nSamples).c_str());
+	AKPLATFORM::OutputDebugMsg(", _additionalLatencyCompensation = ");
+	AKPLATFORM::OutputDebugMsg(std::to_string(_additionalLatencyCompensation).c_str());
 	AKPLATFORM::OutputDebugMsg(", _modelLoadTimeSamples = ");
 	AKPLATFORM::OutputDebugMsg(std::to_string(_modelLoadTimeSamples).c_str());
 	AKPLATFORM::OutputDebugMsg(", _modelPerformTimeSamples = ");

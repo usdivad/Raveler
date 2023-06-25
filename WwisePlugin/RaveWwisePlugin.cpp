@@ -75,6 +75,8 @@ bool RaveWwisePlugin::GetBankParameters(const GUID & in_guidPlatform, AK::Wwise:
 
 	in_dataWriter.WriteString(m_propertySet.GetString(in_guidPlatform, "ModelFilePath"));
 
+	in_dataWriter.WriteInt32(m_propertySet.GetInt32(in_guidPlatform, "LatencyCompensationSamples"));
+
     return true;
 }
 
