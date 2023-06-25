@@ -8,6 +8,7 @@
 
 #define MAX_LATENT_BUFFER_SIZE 32
 #define BUFFER_LENGTH 32768
+#define DRY_BUFFER_LENGTH BUFFER_LENGTH * 4 // Increase dry buffer size to account for latency compensation settings
 
 using namespace torch::indexing;
 

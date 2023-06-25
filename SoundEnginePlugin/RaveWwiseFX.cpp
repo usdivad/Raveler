@@ -114,7 +114,7 @@ AKRESULT RaveWwiseFX::Init(AK::IAkPluginMemAlloc* in_pAllocator, AK::IAkEffectPl
 
 	//_sampleRate = sampleRate;
 	_inBuffer[0].initialize(BUFFER_LENGTH);
-	_dryBuffer[0].initialize(BUFFER_LENGTH * 2); // Double buffer length to account for latency
+	_dryBuffer[0].initialize(DRY_BUFFER_LENGTH);
 	_outBuffer[0].initialize(BUFFER_LENGTH);
 	_outBuffer[1].initialize(BUFFER_LENGTH);
 	//setLatencySamples(pow(2, *_latencyMode));

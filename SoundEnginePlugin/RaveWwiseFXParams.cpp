@@ -146,7 +146,8 @@ AKRESULT RaveWwiseFXParams::SetParamsBlock(const void* in_pParamsBlock, AkUInt32
 	RTPC.uLatencyMode = READBANKDATA(AkUInt32, pParamsBlock, in_ulBlockSize);
 
 	NonRTPC.sModelFilePath = READBANKDATA(AkOSChar*, pParamsBlock, in_ulBlockSize);
-	RTPC.iLatencyCompensationSamples = READBANKDATA(AkInt32, pParamsBlock, in_ulBlockSize);
+
+	RTPC.iLatencyCompensationSamples = (AkInt32)(READBANKDATA(AkReal32, pParamsBlock, in_ulBlockSize));
 
     CHECKBANKDATASIZE(in_ulBlockSize, eResult);
     m_paramChangeHandler.SetAllParamChanges();
@@ -285,7 +286,7 @@ AKRESULT RaveWwiseFXParams::SetParam(AkPluginParamID in_paramID, const void* in_
 		break;
 
 	case PARAM_LATENCY_COMPENSATION_ID:
-		RTPC.iLatencyCompensationSamples = *((AkInt32*)in_pValue);
+		RTPC.iLatencyCompensationSamples = (AkInt32)(*((AkReal32*)in_pValue));
 		m_paramChangeHandler.SetParamChange(PARAM_LATENCY_COMPENSATION_ID);
 		break;
 
