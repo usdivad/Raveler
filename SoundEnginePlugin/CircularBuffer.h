@@ -12,6 +12,7 @@ public:
   void get(out_type *output_array, int N);
   void push(in_type input);
   out_type pop();
+  out_type peek(int i);
   int len();
   void reset();
 
@@ -112,6 +113,21 @@ out_type circular_buffer<in_type, out_type>::pop() {
     _count--;
 
     return value;
+}
+
+template <class in_type, class out_type>
+out_type circular_buffer<in_type, out_type>::peek(int i) {
+	out_type value = out_type();
+
+	if (!_max_size) {
+		return value;
+	}
+
+	if (!empty()) {
+		value = _buffer[(_tail + i) % _max_size];
+	}
+
+	return value;
 }
 
 template <class in_type, class out_type>
