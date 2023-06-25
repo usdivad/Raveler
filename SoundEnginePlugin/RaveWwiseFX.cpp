@@ -322,8 +322,8 @@ void RaveWwiseFX::Execute(AkAudioBuffer* in_pBuffer, AkUInt32 in_ulnOffset, AkAu
     // ----------------------------------------------------------------
     // Write to final output buffer
 
-	const int dryWetLatency = _modelLoadTimeSamples + nSamples; // + currentRefreshRate;
-    //const int dryWetLatency = _modelPerformTimeSamples - currentRefreshRate;
+	//const int dryWetLatency = _modelLoadTimeSamples + nSamples; // + currentRefreshRate;
+    const int dryWetLatency = _modelPerformTimeSamples; // - currentRefreshRate;
 	AKPLATFORM::OutputDebugMsg("dryWetLatency = ");
 	AKPLATFORM::OutputDebugMsg(std::to_string(dryWetLatency).c_str());
 	AKPLATFORM::OutputDebugMsg(" (currentRefreshRate = ");
