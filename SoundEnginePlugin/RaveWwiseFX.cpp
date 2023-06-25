@@ -32,12 +32,16 @@ the specific language governing permissions and limitations under the License.
 #include <algorithm>
 #include <cmath>
 
+//----------------------------------------------------------------------------------------------------------------------
+
 #define DEBUG_PERFORM 1
 
 namespace RaveWwise
 {
 	void modelPerform_callback(RaveWwiseFX* ap) { ap->modelPerform(); }
 }
+
+//----------------------------------------------------------------------------------------------------------------------
 
 AK::IAkPlugin* CreateRaveWwiseFX(AK::IAkPluginMemAlloc* in_pAllocator)
 {
@@ -60,10 +64,6 @@ RaveWwiseFX::RaveWwiseFX()
 
     _loadedModelName = "";
     _computeThread = nullptr;
-
-    // TODO
-    //_dryWetMixerEffect = new juce::dsp::DryWetMixer<float>(BUFFER_LENGTH);
-    //_dryWetMixerEffect.setMixingRule(juce::dsp::DryWetMixingRule::balanced);
 
     _inBuffer = std::make_unique<circular_buffer<float, float>[]>(1);
 	_dryBuffer = std::make_unique<circular_buffer<float, float>[]>(1);
@@ -246,20 +246,6 @@ void RaveWwiseFX::Execute(AkAudioBuffer* in_pBuffer, AkUInt32 in_ulnOffset, AkAu
     
     uFramesConsumed = nSamples;
 
-	//juce::String channelMode =
-	//	channel_modes[static_cast<int>(_channelMode->load()) - 1];
-	//if (channelMode == "L") {
-	//	_inBuffer[0].put(channelL, nSamples);
-	//}
-	//else if (channelMode == "R") {
-	//	_inBuffer[0].put(channelR, nSamples);
-	//}
-	//else if (channelMode == "L + R") {
-	//	FloatVectorOperations::add(channelL, channelR, nSamples);
-	//	FloatVectorOperations::multiply(channelL, 0.5f, nSamples);
-	//	_inBuffer[0].put(channelL, nSamples);
-	//}
-
 	// ----------------------------------------------------------------
 	// Create processing thread
 
@@ -309,10 +295,6 @@ void RaveWwiseFX::Execute(AkAudioBuffer* in_pBuffer, AkUInt32 in_ulnOffset, AkAu
 		//}
 		//AKPLATFORM::OutputDebugMsg("\n");
 	}
-
-	//AudioBuffer<float> out_buffer(2, nSamples);
-	//juce::dsp::AudioBlock<float> out_ab(out_buffer);
-	//juce::dsp::ProcessContextReplacing<float> out_context(out_ab);
 
 	AKPLATFORM::OutputDebugMsg("_inBuffer[0].len() = ");
 	AKPLATFORM::OutputDebugMsg(std::to_string(_inBuffer[0].len()).c_str());

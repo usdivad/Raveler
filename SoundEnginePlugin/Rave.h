@@ -3,8 +3,9 @@
 #include <torch/script.h>
 #include <torch/torch.h>
 
-// For debug printing
 #include <AK/Tools/Common/AkPlatformFuncs.h>
+
+//----------------------------------------------------------------------------------------------------------------------
 
 #define MAX_LATENT_BUFFER_SIZE 32
 #define BUFFER_LENGTH 32768
@@ -12,10 +13,11 @@
 
 using namespace torch::indexing;
 
-// TODO: Move this to its own file
+//----------------------------------------------------------------------------------------------------------------------
+
 namespace RaveWwise {
     
-    // Replacement for juce::Range
+    // Range with a start and end value
     template <typename T>
     struct Range {
 
@@ -31,8 +33,8 @@ namespace RaveWwise {
     };
 }
 
-// TODO: Inherit from custom implementation of juce::ChangeBroadcaster?
-//       (May be unnecessary since in RAVE VST the ChangeBroadcaster functionality is used for the plugin editor)
+//----------------------------------------------------------------------------------------------------------------------
+
 class RAVE {
 
 public:

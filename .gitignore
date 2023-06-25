@@ -4,7 +4,6 @@
 ### RAVE Wwise ###
 Libraries/onnx/onnxruntime
 Libraries/torch/libtorch
-Libraries/juce/modules
 Libraries/bs_thread_pool
 Models
 
