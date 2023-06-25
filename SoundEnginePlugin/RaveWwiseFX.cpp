@@ -152,10 +152,28 @@ void RaveWwiseFX::Execute(AkAudioBuffer* in_pBuffer, AkUInt32 in_ulnOffset, AkAu
 
 	// ----------------------------------------------------------------
     // Update RTPC params
+    // TODO: Remaining params from RAVE VST
 
-    // TODO: Rest of params
-    const float dryWetValue = _fxParams->RTPC.fOutputDryWet;
+    const float outputDryWetPercentage = _fxParams->RTPC.fOutputDryWet;
     const int additionalLatencyCompensation = _fxParams->RTPC.iLatencyCompensationSamples;
+
+	_latentScale.at(0) = _fxParams->RTPC.fLatent1Scale;
+	_latentScale.at(1) = _fxParams->RTPC.fLatent2Scale;
+	_latentScale.at(2) = _fxParams->RTPC.fLatent3Scale;
+	_latentScale.at(3) = _fxParams->RTPC.fLatent4Scale;
+	_latentScale.at(4) = _fxParams->RTPC.fLatent5Scale;
+	_latentScale.at(5) = _fxParams->RTPC.fLatent6Scale;
+	_latentScale.at(6) = _fxParams->RTPC.fLatent7Scale;
+	_latentScale.at(7) = _fxParams->RTPC.fLatent8Scale;
+
+	_latentBias.at(0) = _fxParams->RTPC.fLatent1Bias;
+	_latentBias.at(1) = _fxParams->RTPC.fLatent2Bias;
+	_latentBias.at(2) = _fxParams->RTPC.fLatent3Bias;
+	_latentBias.at(3) = _fxParams->RTPC.fLatent4Bias;
+	_latentBias.at(4) = _fxParams->RTPC.fLatent5Bias;
+	_latentBias.at(5) = _fxParams->RTPC.fLatent6Bias;
+	_latentBias.at(6) = _fxParams->RTPC.fLatent7Bias;
+	_latentBias.at(7) = _fxParams->RTPC.fLatent8Bias;
 
 	// ----------------------------------------------------------------
     // Setup book-keeping
@@ -287,7 +305,7 @@ void RaveWwiseFX::Execute(AkAudioBuffer* in_pBuffer, AkUInt32 in_ulnOffset, AkAu
 
             if (i < out_pBuffer->MaxFrames())
             {
-                const float wetAmount = dryWetValue * 0.01f;
+                const float wetAmount = outputDryWetPercentage * 0.01f;
                 const float dryAmount = 1.f - wetAmount;
 
 				const float wetSampleValue = (wetSampleValueL + wetSampleValueR) * 0.5f;
@@ -472,8 +490,8 @@ void RaveWwiseFX::modelPerform()
             // """
             assert(i >= 0);
             auto i2 = (long unsigned int)i;
-            float scale = _latentScale.at(i2).load();
-            float bias = _latentBias.at(i2).load();
+            const float scale = _latentScale.at(i2);
+            const float bias = _latentBias.at(i2);
             latent_traj.index_put_({ 0, i },
                 (latent_traj.index({ 0, i }) * scale + bias));
             latent_traj_mean.index_put_(
