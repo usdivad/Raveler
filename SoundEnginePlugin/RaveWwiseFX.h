@@ -128,6 +128,7 @@ public:
 
 private:
     //------------------------------------------------------------------------------------------------------------------
+    // Effect plugin variables
 
     RaveWwiseFXParams* m_pParams { nullptr };
     AK::IAkPluginMemAlloc* m_pAllocator { nullptr };
@@ -145,7 +146,6 @@ private:
     std::unique_ptr<circular_buffer<float, float>[]> _inBuffer { nullptr };
     std::unique_ptr<circular_buffer<float, float>[]> _dryBuffer { nullptr };
     std::unique_ptr<circular_buffer<float, float>[]> _outBuffer { nullptr };
-    //std::vector<float*> _inModel { }, _outModel { };
 	std::vector<std::unique_ptr<float[]>> _inModel{ }, _outModel{ };
     std::unique_ptr<std::thread> _computeThread { nullptr };
 

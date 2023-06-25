@@ -60,10 +60,11 @@ RaveWwiseFX::RaveWwiseFX()
     , m_pAllocator(nullptr)
     , m_pContext(nullptr)
 {
-    // TODO: Make sure all dynamic allocations use m_pAllocator
-
     _loadedModelName = "";
     _computeThread = nullptr;
+
+	// TODO: Perform dynamic allocations in Init() using m_pAllocator
+	//      (this may require replacing std::unique_ptr's with raw pointers)
 
     _inBuffer = std::make_unique<circular_buffer<float, float>[]>(1);
 	_dryBuffer = std::make_unique<circular_buffer<float, float>[]>(1);
@@ -74,9 +75,7 @@ RaveWwiseFX::RaveWwiseFX()
     
     _engineThreadPool = std::make_unique<BS::thread_pool>(1);
     
-    _rave.reset(new RAVE()); // TODO: Use m_pAllocator in Init()
-
-    // TODO: Parameter listener equivalents
+    _rave.reset(new RAVE());
 
     _editorReady = false;
 }
@@ -91,33 +90,20 @@ RaveWwiseFX::~RaveWwiseFX()
 
 AKRESULT RaveWwiseFX::Init(AK::IAkPluginMemAlloc* in_pAllocator, AK::IAkEffectPluginContext* in_pContext, AK::IAkPluginParam* in_pParams, AkAudioFormat& in_rFormat)
 {
+	// --------
+	// Store effect plugin members
+
     m_pParams = (RaveWwiseFXParams*)in_pParams;
     m_pAllocator = in_pAllocator;
     m_pContext = in_pContext;
 
-	// --------
-    // Allocation for RAVE members
-
- //   _ravePtr = AK_PLUGIN_NEW(m_pAllocator, RAVE());
- //   _rave.reset(_ravePtr);
-
- //   _inModelBuf = (float*)(AK_PLUGIN_ALLOC(m_pAllocator, sizeof(float) * BUFFER_LENGTH));
- //   _inModel.push_back(_inModelBuf);
-
- //   _outModelBufL = (float*)(AK_PLUGIN_ALLOC(m_pAllocator, sizeof(float) * BUFFER_LENGTH));
- //   _outModelBufR = (float*)(AK_PLUGIN_ALLOC(m_pAllocator, sizeof(float) * BUFFER_LENGTH));
- //   _outModel.push_back(_outModelBufL);
- //   _outModel.push_back(_outModelBufR);
-
     // --------
-    // RaveAP::prepareToPlay()
+    // Initialize circular buffers (from RaveAP::prepareToPlay())
 
-	//_sampleRate = sampleRate;
 	_inBuffer[0].initialize(BUFFER_LENGTH);
 	_dryBuffer[0].initialize(DRY_BUFFER_LENGTH);
 	_outBuffer[0].initialize(BUFFER_LENGTH);
 	_outBuffer[1].initialize(BUFFER_LENGTH);
-	//setLatencySamples(pow(2, *_latencyMode));
 
     // --------
     // Load the model
@@ -144,13 +130,7 @@ AKRESULT RaveWwiseFX::Init(AK::IAkPluginMemAlloc* in_pAllocator, AK::IAkEffectPl
 
 AKRESULT RaveWwiseFX::Term(AK::IAkPluginMemAlloc* in_pAllocator)
 {
- //   AK_PLUGIN_DELETE(in_pAllocator, _ravePtr);
- //   AK_PLUGIN_FREE(in_pAllocator, _inModelBuf);
- //   AK_PLUGIN_FREE(in_pAllocator, _outModelBufL);
- //   AK_PLUGIN_FREE(in_pAllocator, _outModelBufR);
-
     AK_PLUGIN_DELETE(in_pAllocator, this);
-    
     return AK_Success;
 }
 
@@ -615,23 +595,12 @@ void RaveWwiseFX::modelPerform()
         outputDataPtrL = outL.data_ptr<float>();
         outputDataPtrR = outR.data_ptr<float>();
 
-        // Write in buffers
+        // Write to output buffers
         assert(input_size >= 0);
-		//AKPLATFORM::OutputDebugMsg("\n");
         for (size_t i = 0; i < (size_t)input_size; i++) {
             _outModel[0][i] = outputDataPtrL[i];
             _outModel[1][i] = outputDataPtrR[i];
-
-            //AKPLATFORM::OutputDebugMsg(std::to_string(outputDataPtrL[i]).c_str());
-			//AKPLATFORM::OutputDebugMsg(std::to_string(_outModel[0][i]).c_str());
-            //AKPLATFORM::OutputDebugMsg(", ");
         }
-		//AKPLATFORM::OutputDebugMsg("\n");
-
-        // TODO
-        //if (_smoothedFadeInOut.getCurrentValue() < EPSILON) {
-        //    _isMuted.store(true);
-        //}
 
         _modelPerformed = true;
     }
