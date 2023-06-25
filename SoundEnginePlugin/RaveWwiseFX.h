@@ -147,7 +147,6 @@ private:
     std::atomic<float> _latentJitterValue { 0.f }; // min = 0, max = 3, default = 0
     std::atomic<float> _widthValue { 100.f }; // min = 0, max = 200, default = 100
     std::atomic<float> _outputGainValue { 0.f }; // range = rave_ranges::gainRange, default = 0
-    std::atomic<float> _dryWetValue { 100.f }; // min = 0, max = 100, default = 100
     std::atomic<float> _limitValue { 1.f }; // bool behavior, default = true
     std::atomic<float> _channelMode { 1.f }; // min = 1, max = 3, default = 1
 
@@ -170,7 +169,6 @@ private:
     bool _modelPerformed = false;
     int _modelPerformTimeSamples = 0;
     int _dryLatencySamplesElapsed = 0;
-    int _additionalLatencyCompensation = 0;
 
 };
 

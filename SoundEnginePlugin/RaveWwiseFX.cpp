@@ -154,8 +154,8 @@ void RaveWwiseFX::Execute(AkAudioBuffer* in_pBuffer, AkUInt32 in_ulnOffset, AkAu
     // Update RTPC params
 
     // TODO: Rest of params
-    _dryWetValue = _fxParams->RTPC.fOutputDryWet;
-    _additionalLatencyCompensation = _fxParams->RTPC.iLatencyCompensationSamples;
+    const float dryWetValue = _fxParams->RTPC.fOutputDryWet;
+    const int additionalLatencyCompensation = _fxParams->RTPC.iLatencyCompensationSamples;
 
 	// ----------------------------------------------------------------
     // Setup book-keeping
@@ -246,7 +246,7 @@ void RaveWwiseFX::Execute(AkAudioBuffer* in_pBuffer, AkUInt32 in_ulnOffset, AkAu
     // ----------------------------------------------------------------
     // Write to final output buffer
 
-    const int dryWetLatency = _modelLoadTimeSamples + _additionalLatencyCompensation;
+    const int dryWetLatency = _modelLoadTimeSamples + additionalLatencyCompensation;
 
 #if DEBUG_PERFORM
 	AKPLATFORM::OutputDebugMsg("dryWetLatency = ");
@@ -255,8 +255,8 @@ void RaveWwiseFX::Execute(AkAudioBuffer* in_pBuffer, AkUInt32 in_ulnOffset, AkAu
 	AKPLATFORM::OutputDebugMsg(std::to_string(currentRefreshRate).c_str());
 	AKPLATFORM::OutputDebugMsg(", nSamples = ");
 	AKPLATFORM::OutputDebugMsg(std::to_string(nSamples).c_str());
-	AKPLATFORM::OutputDebugMsg(", _additionalLatencyCompensation = ");
-	AKPLATFORM::OutputDebugMsg(std::to_string(_additionalLatencyCompensation).c_str());
+	AKPLATFORM::OutputDebugMsg(", additionalLatencyCompensation = ");
+	AKPLATFORM::OutputDebugMsg(std::to_string(additionalLatencyCompensation).c_str());
 	AKPLATFORM::OutputDebugMsg(", _modelLoadTimeSamples = ");
 	AKPLATFORM::OutputDebugMsg(std::to_string(_modelLoadTimeSamples).c_str());
 	AKPLATFORM::OutputDebugMsg(", _modelPerformTimeSamples = ");
@@ -287,7 +287,7 @@ void RaveWwiseFX::Execute(AkAudioBuffer* in_pBuffer, AkUInt32 in_ulnOffset, AkAu
 
             if (i < out_pBuffer->MaxFrames())
             {
-                const float wetAmount = _dryWetValue * 0.01f;
+                const float wetAmount = dryWetValue * 0.01f;
                 const float dryAmount = 1.f - wetAmount;
 
 				const float wetSampleValue = (wetSampleValueL + wetSampleValueR) * 0.5f;
