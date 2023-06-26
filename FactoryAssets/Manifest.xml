@@ -28,8 +28,8 @@ the specific language governing permissions and limitations under the License.
 See https://www.audiokinetic.com/library/edge/?source=Help&id=import_factory_assets
 for more information on factory assets
 -->
-<Manifest Name="RAVE" Type="Presets">
+<Manifest Name="Raveler" Type="Presets">
   <Dependencies>
-    <Plugin PluginName="RAVE" CompanyID="64" PluginID="8645" PluginType="3"/>
+    <Plugin PluginName="Raveler" CompanyID="64" PluginID="8645" PluginType="3"/>
   </Dependencies>
 </Manifest>

@@ -5,13 +5,13 @@
     "id": "David Su.RaveWwise.${year}_${major}_${minor}_${build}",
 
     // Name displayed in the Wwise Launcher for this bundle
-    "name": "RAVE",
+    "name": "Raveler",
     
     // Tag uniquely identifying the plug-in (format [0-9A-z_]+, 50 characters maximum)
     "tag": "RaveWwise",
 
     // Description displayed in the Wwise Launcher for this bundle
-    "description": "Wwise port of the RAVE VST project",
+    "description": "Wwise plugin that allows you to run RAVE models directly within Wwise, enabling real-time timbre transfer via neural audio synthesis in a game audio setting.",
 
     // Vendor name displayed in the Wwise Launcher for this bundle
     "vendor": "David Su",
