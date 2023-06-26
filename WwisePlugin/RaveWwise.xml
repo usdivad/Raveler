@@ -29,7 +29,7 @@ See https://www.audiokinetic.com/library/edge/?source=SDK&id=plugin__xml.html
 for the documentation about the plugin xml format
 -->
 <PluginModule>
-  <EffectPlugin Name="RAVE" CompanyID="64" PluginID="8645">
+  <EffectPlugin Name="RaveWwise" CompanyID="64" PluginID="8645">
     <PluginInfo>
       <PlatformSupport>
         <Platform Name="Any">
