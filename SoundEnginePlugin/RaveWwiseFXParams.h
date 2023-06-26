@@ -89,9 +89,9 @@ static const AkUInt32 NUM_PARAMS = 30;
 // Channel mode
 enum class EChannelMode : AkUInt32
 {
-	Left = 0,
-	Right,
-	LeftAndRight
+    Left = 0,
+    Right,
+    LeftAndRight
 };
 
 // ----------------------------------------------------------------
@@ -117,26 +117,26 @@ struct RaveWwiseRTPCParams
     AkReal32 fLatent1Bias;
     AkReal32 fLatent1Scale;
 
-	AkReal32 fLatent2Bias;
-	AkReal32 fLatent2Scale;
-	
+    AkReal32 fLatent2Bias;
+    AkReal32 fLatent2Scale;
+    
     AkReal32 fLatent3Bias;
-	AkReal32 fLatent3Scale;
-	
+    AkReal32 fLatent3Scale;
+    
     AkReal32 fLatent4Bias;
-	AkReal32 fLatent4Scale;
-	
+    AkReal32 fLatent4Scale;
+    
     AkReal32 fLatent5Bias;
-	AkReal32 fLatent5Scale;
-	
+    AkReal32 fLatent5Scale;
+    
     AkReal32 fLatent6Bias;
-	AkReal32 fLatent6Scale;
-	
-	AkReal32 fLatent7Bias;
+    AkReal32 fLatent6Scale;
+    
+    AkReal32 fLatent7Bias;
     AkReal32 fLatent7Scale;
-	
+    
     AkReal32 fLatent8Bias;
-	AkReal32 fLatent8Scale;
+    AkReal32 fLatent8Scale;
 
     // Output
     AkReal32 fOutputGain;
@@ -149,11 +149,11 @@ struct RaveWwiseRTPCParams
 
 struct RaveWwiseNonRTPCParams
 {
-	// Buffer
-	AkUInt32 uLatencyMode;
+    // Buffer
+    AkUInt32 uLatencyMode;
 
-	// Custom
-	AkOSChar* sModelFilePath;
+    // Custom
+    AkOSChar* sModelFilePath;
 };
 
 struct RaveWwiseFXParams

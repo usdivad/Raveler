@@ -38,7 +38,7 @@ the specific language governing permissions and limitations under the License.
 
 namespace RaveWwise
 {
-	void modelPerform_callback(RaveWwiseFX* ap) { ap->ModelPerform(); }
+    void modelPerform_callback(RaveWwiseFX* ap) { ap->ModelPerform(); }
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -62,15 +62,15 @@ RaveWwiseFX::RaveWwiseFX() : _fxParams(nullptr)
     _loadedModelName = "";
     _computeThread = nullptr;
 
-	// TODO: Perform dynamic allocations in Init() using m_pAllocator
-	//      (this may require replacing std::unique_ptr's with raw pointers)
+    // TODO: Perform dynamic allocations in Init() using m_pAllocator
+    //      (this may require replacing std::unique_ptr's with raw pointers)
 
     _inBuffer = std::make_unique<circular_buffer<float, float>[]>(1);
-	_dryBuffer = std::make_unique<circular_buffer<float, float>[]>(1);
+    _dryBuffer = std::make_unique<circular_buffer<float, float>[]>(1);
     _outBuffer = std::make_unique<circular_buffer<float, float>[]>(2);
-	_inModel.push_back(std::make_unique<float[]>(BUFFER_LENGTH));
-	_outModel.push_back(std::make_unique<float[]>(BUFFER_LENGTH));
-	_outModel.push_back(std::make_unique<float[]>(BUFFER_LENGTH));
+    _inModel.push_back(std::make_unique<float[]>(BUFFER_LENGTH));
+    _outModel.push_back(std::make_unique<float[]>(BUFFER_LENGTH));
+    _outModel.push_back(std::make_unique<float[]>(BUFFER_LENGTH));
     
     _engineThreadPool = std::make_unique<BS::thread_pool>(1);
     
@@ -87,8 +87,8 @@ RaveWwiseFX::~RaveWwiseFX()
 
 AKRESULT RaveWwiseFX::Init(AK::IAkPluginMemAlloc* in_pAllocator, AK::IAkEffectPluginContext* in_pContext, AK::IAkPluginParam* in_pParams, AkAudioFormat& in_rFormat)
 {
-	// --------
-	// Store effect plugin members
+    // --------
+    // Store effect plugin members
 
     _fxParams = (RaveWwiseFXParams*)in_pParams;
     _fxAllocator = in_pAllocator;
@@ -97,17 +97,17 @@ AKRESULT RaveWwiseFX::Init(AK::IAkPluginMemAlloc* in_pAllocator, AK::IAkEffectPl
     // --------
     // Initialize circular buffers (from RaveAP::prepareToPlay())
 
-	_inBuffer[0].initialize(BUFFER_LENGTH);
-	_dryBuffer[0].initialize(DRY_BUFFER_LENGTH);
-	_outBuffer[0].initialize(BUFFER_LENGTH);
-	_outBuffer[1].initialize(BUFFER_LENGTH);
+    _inBuffer[0].initialize(BUFFER_LENGTH);
+    _dryBuffer[0].initialize(DRY_BUFFER_LENGTH);
+    _outBuffer[0].initialize(BUFFER_LENGTH);
+    _outBuffer[1].initialize(BUFFER_LENGTH);
 
 
-	// --------
-	// Update non-RTPC params
+    // --------
+    // Update non-RTPC params
     // NOTE: _loadedModelName gets updated in UpdateEngine()
 
-	_latencyMode = _fxParams->NonRTPC.uLatencyMode;
+    _latencyMode = _fxParams->NonRTPC.uLatencyMode;
 
     // --------
     // Load the model
@@ -116,7 +116,7 @@ AKRESULT RaveWwiseFX::Init(AK::IAkPluginMemAlloc* in_pAllocator, AK::IAkEffectPl
     //
     // TODO: - Escape backslashes for file paths ("\" --> "\\")
     //       - Move the char-conversion/string-creation to RaveWwiseFXParams?
-	//       - Move entire model loading routine to plugin library registration step, to avoid re-loading unnecessarily with every effect instantiation at runtime? See https://www.audiokinetic.com/en/library/edge/?source=SDK&id=soundengine_plugins.html#fx_global_hooks
+    //       - Move entire model loading routine to plugin library registration step, to avoid re-loading unnecessarily with every effect instantiation at runtime? See https://www.audiokinetic.com/en/library/edge/?source=SDK&id=soundengine_plugins.html#fx_global_hooks
     //       - Allow relative paths + figure out platform-dependent file path handling
 
     SetModelLoaded(false);
@@ -148,7 +148,7 @@ AKRESULT RaveWwiseFX::GetPluginInfo(AkPluginInfo& out_rPluginInfo)
 {
     out_rPluginInfo.eType = AkPluginTypeEffect;
     out_rPluginInfo.bIsInPlace = false;
-	out_rPluginInfo.bCanProcessObjects = false;
+    out_rPluginInfo.bCanProcessObjects = false;
     out_rPluginInfo.uBuildVersion = AK_WWISESDK_VERSION_COMBINED;
     return AK_Success;
 }
@@ -158,37 +158,37 @@ void RaveWwiseFX::Execute(AkAudioBuffer* in_pBuffer, AkUInt32 in_ulnOffset, AkAu
     const AkUInt32 uNumChannelsIn = in_pBuffer->NumChannels();
     const AkUInt32 uNumChannelsOut = out_pBuffer->NumChannels();
 
-	// ----------------------------------------------------------------
+    // ----------------------------------------------------------------
     // Update RTPC params
     // TODO: Remaining params from RAVE VST
 
     const float outputDryWetPercentage = _fxParams->RTPC.fOutputDryWet;
     const int additionalLatencyCompensation = _fxParams->RTPC.iLatencyCompensationSamples;
 
-	_latentScale.at(0) = _fxParams->RTPC.fLatent1Scale;
-	_latentScale.at(1) = _fxParams->RTPC.fLatent2Scale;
-	_latentScale.at(2) = _fxParams->RTPC.fLatent3Scale;
-	_latentScale.at(3) = _fxParams->RTPC.fLatent4Scale;
-	_latentScale.at(4) = _fxParams->RTPC.fLatent5Scale;
-	_latentScale.at(5) = _fxParams->RTPC.fLatent6Scale;
-	_latentScale.at(6) = _fxParams->RTPC.fLatent7Scale;
-	_latentScale.at(7) = _fxParams->RTPC.fLatent8Scale;
+    _latentScale.at(0) = _fxParams->RTPC.fLatent1Scale;
+    _latentScale.at(1) = _fxParams->RTPC.fLatent2Scale;
+    _latentScale.at(2) = _fxParams->RTPC.fLatent3Scale;
+    _latentScale.at(3) = _fxParams->RTPC.fLatent4Scale;
+    _latentScale.at(4) = _fxParams->RTPC.fLatent5Scale;
+    _latentScale.at(5) = _fxParams->RTPC.fLatent6Scale;
+    _latentScale.at(6) = _fxParams->RTPC.fLatent7Scale;
+    _latentScale.at(7) = _fxParams->RTPC.fLatent8Scale;
 
-	_latentBias.at(0) = _fxParams->RTPC.fLatent1Bias;
-	_latentBias.at(1) = _fxParams->RTPC.fLatent2Bias;
-	_latentBias.at(2) = _fxParams->RTPC.fLatent3Bias;
-	_latentBias.at(3) = _fxParams->RTPC.fLatent4Bias;
-	_latentBias.at(4) = _fxParams->RTPC.fLatent5Bias;
-	_latentBias.at(5) = _fxParams->RTPC.fLatent6Bias;
-	_latentBias.at(6) = _fxParams->RTPC.fLatent7Bias;
-	_latentBias.at(7) = _fxParams->RTPC.fLatent8Bias;
+    _latentBias.at(0) = _fxParams->RTPC.fLatent1Bias;
+    _latentBias.at(1) = _fxParams->RTPC.fLatent2Bias;
+    _latentBias.at(2) = _fxParams->RTPC.fLatent3Bias;
+    _latentBias.at(3) = _fxParams->RTPC.fLatent4Bias;
+    _latentBias.at(4) = _fxParams->RTPC.fLatent5Bias;
+    _latentBias.at(5) = _fxParams->RTPC.fLatent6Bias;
+    _latentBias.at(6) = _fxParams->RTPC.fLatent7Bias;
+    _latentBias.at(7) = _fxParams->RTPC.fLatent8Bias;
 
-	// ----------------------------------------------------------------
+    // ----------------------------------------------------------------
     // Setup book-keeping
 
-	// RAVE
+    // RAVE
     const int nSamples = in_pBuffer->uValidFrames;
-	const int nChannelsIn = (const int)uNumChannelsIn;
+    const int nChannelsIn = (const int)uNumChannelsIn;
     const int nChannelsOut = (const int)uNumChannelsOut;
     
     if (!_modelLoaded.load())
@@ -202,11 +202,11 @@ void RaveWwiseFX::Execute(AkAudioBuffer* in_pBuffer, AkUInt32 in_ulnOffset, AkAu
     }
     
     // Effect plugin
-	AkUInt16 uFramesConsumed = 0;
-	AkUInt16 uFramesProduced = 0;
+    AkUInt16 uFramesConsumed = 0;
+    AkUInt16 uFramesProduced = 0;
 
-	// ----------------------------------------------------------------
-	// Push input buffer contents to circular buffer
+    // ----------------------------------------------------------------
+    // Push input buffer contents to circular buffer
 
     if (nChannelsIn < 1)
     {
@@ -231,41 +231,41 @@ void RaveWwiseFX::Execute(AkAudioBuffer* in_pBuffer, AkUInt32 in_ulnOffset, AkAu
     
     uFramesConsumed = nSamples;
 
-	// ----------------------------------------------------------------
-	// Create processing thread
+    // ----------------------------------------------------------------
+    // Create processing thread
 
-	int currentRefreshRate = pow(2, _latencyMode);
+    int currentRefreshRate = pow(2, _latencyMode);
 
-	if (_inBuffer[0].len() >= currentRefreshRate) {
-		if (_computeThread) {
+    if (_inBuffer[0].len() >= currentRefreshRate) {
+        if (_computeThread) {
 
 #if DEBUG_PERFORM
-			AKPLATFORM::OutputDebugMsg("Joining... ");
-			AKPLATFORM::OutputDebugMsg("\n");
+            AKPLATFORM::OutputDebugMsg("Joining... ");
+            AKPLATFORM::OutputDebugMsg("\n");
 #endif
 
-			_computeThread->join();
-		}
-		_inBuffer[0].get(_inModel[0].get(), currentRefreshRate);
+            _computeThread->join();
+        }
+        _inBuffer[0].get(_inModel[0].get(), currentRefreshRate);
 
         for (size_t i = 0; i < currentRefreshRate; ++i)
         {
             _dryBuffer[0].push(_inModel[0][i]);
         }
 
-		_outBuffer[0].put(_outModel[0].get(), currentRefreshRate);
-		_outBuffer[1].put(_outModel[1].get(), currentRefreshRate);
+        _outBuffer[0].put(_outModel[0].get(), currentRefreshRate);
+        _outBuffer[1].put(_outModel[1].get(), currentRefreshRate);
 
-		_computeThread = std::make_unique<std::thread>(RaveWwise::modelPerform_callback, this);
-	}
+        _computeThread = std::make_unique<std::thread>(RaveWwise::modelPerform_callback, this);
+    }
 
 #if DEBUG_PERFORM
-	AKPLATFORM::OutputDebugMsg("_inBuffer[0].len() = ");
-	AKPLATFORM::OutputDebugMsg(std::to_string(_inBuffer[0].len()).c_str());
-	AKPLATFORM::OutputDebugMsg(", _dryBuffer[0].len() = ");
-	AKPLATFORM::OutputDebugMsg(std::to_string(_dryBuffer[0].len()).c_str());
-	AKPLATFORM::OutputDebugMsg(", _outBuffer[0].len() = ");
-	AKPLATFORM::OutputDebugMsg(std::to_string(_outBuffer[0].len()).c_str());
+    AKPLATFORM::OutputDebugMsg("_inBuffer[0].len() = ");
+    AKPLATFORM::OutputDebugMsg(std::to_string(_inBuffer[0].len()).c_str());
+    AKPLATFORM::OutputDebugMsg(", _dryBuffer[0].len() = ");
+    AKPLATFORM::OutputDebugMsg(std::to_string(_dryBuffer[0].len()).c_str());
+    AKPLATFORM::OutputDebugMsg(", _outBuffer[0].len() = ");
+    AKPLATFORM::OutputDebugMsg(std::to_string(_outBuffer[0].len()).c_str());
     AKPLATFORM::OutputDebugMsg("\n");
 #endif
 
@@ -275,25 +275,25 @@ void RaveWwiseFX::Execute(AkAudioBuffer* in_pBuffer, AkUInt32 in_ulnOffset, AkAu
     const int dryWetLatency = _modelLoadTimeSamples + additionalLatencyCompensation;
 
 #if DEBUG_PERFORM
-	AKPLATFORM::OutputDebugMsg("dryWetLatency = ");
-	AKPLATFORM::OutputDebugMsg(std::to_string(dryWetLatency).c_str());
-	AKPLATFORM::OutputDebugMsg(" (currentRefreshRate = ");
-	AKPLATFORM::OutputDebugMsg(std::to_string(currentRefreshRate).c_str());
-	AKPLATFORM::OutputDebugMsg(", nSamples = ");
-	AKPLATFORM::OutputDebugMsg(std::to_string(nSamples).c_str());
-	AKPLATFORM::OutputDebugMsg(", additionalLatencyCompensation = ");
-	AKPLATFORM::OutputDebugMsg(std::to_string(additionalLatencyCompensation).c_str());
-	AKPLATFORM::OutputDebugMsg(", _modelLoadTimeSamples = ");
-	AKPLATFORM::OutputDebugMsg(std::to_string(_modelLoadTimeSamples).c_str());
-	AKPLATFORM::OutputDebugMsg(", _modelPerformTimeSamples = ");
-	AKPLATFORM::OutputDebugMsg(std::to_string(_modelPerformTimeSamples).c_str());
-	AKPLATFORM::OutputDebugMsg(")");
-	AKPLATFORM::OutputDebugMsg("\n");
+    AKPLATFORM::OutputDebugMsg("dryWetLatency = ");
+    AKPLATFORM::OutputDebugMsg(std::to_string(dryWetLatency).c_str());
+    AKPLATFORM::OutputDebugMsg(" (currentRefreshRate = ");
+    AKPLATFORM::OutputDebugMsg(std::to_string(currentRefreshRate).c_str());
+    AKPLATFORM::OutputDebugMsg(", nSamples = ");
+    AKPLATFORM::OutputDebugMsg(std::to_string(nSamples).c_str());
+    AKPLATFORM::OutputDebugMsg(", additionalLatencyCompensation = ");
+    AKPLATFORM::OutputDebugMsg(std::to_string(additionalLatencyCompensation).c_str());
+    AKPLATFORM::OutputDebugMsg(", _modelLoadTimeSamples = ");
+    AKPLATFORM::OutputDebugMsg(std::to_string(_modelLoadTimeSamples).c_str());
+    AKPLATFORM::OutputDebugMsg(", _modelPerformTimeSamples = ");
+    AKPLATFORM::OutputDebugMsg(std::to_string(_modelPerformTimeSamples).c_str());
+    AKPLATFORM::OutputDebugMsg(")");
+    AKPLATFORM::OutputDebugMsg("\n");
 #endif
 
-	if (_outBuffer[0].len() >= nSamples) {
-		AkReal32* AK_RESTRICT pOutBufL = (AkReal32 * AK_RESTRICT)out_pBuffer->GetChannel(0) + out_pBuffer->uValidFrames;
-		AkReal32* AK_RESTRICT pOutBufR = (AkReal32 * AK_RESTRICT)out_pBuffer->GetChannel(1) + out_pBuffer->uValidFrames;
+    if (_outBuffer[0].len() >= nSamples) {
+        AkReal32* AK_RESTRICT pOutBufL = (AkReal32 * AK_RESTRICT)out_pBuffer->GetChannel(0) + out_pBuffer->uValidFrames;
+        AkReal32* AK_RESTRICT pOutBufR = (AkReal32 * AK_RESTRICT)out_pBuffer->GetChannel(1) + out_pBuffer->uValidFrames;
 
         for (size_t i = 0; i < nSamples; i++)
         {
@@ -316,51 +316,51 @@ void RaveWwiseFX::Execute(AkAudioBuffer* in_pBuffer, AkUInt32 in_ulnOffset, AkAu
                 const float wetAmount = outputDryWetPercentage * 0.01f;
                 const float dryAmount = 1.f - wetAmount;
 
-				const float wetSampleValue = (wetSampleValueL + wetSampleValueR) * 0.5f;
+                const float wetSampleValue = (wetSampleValueL + wetSampleValueR) * 0.5f;
 
                 // Copy averaged L/R output sample value to all channels of output buffer
                 // TODO: Allow different behavior types, e.g. splitting  L/R output amongst the output channels
-				const AkReal32 outputSampleValue = (dryAmount * drySampleValue) + (wetAmount * wetSampleValue);
+                const AkReal32 outputSampleValue = (dryAmount * drySampleValue) + (wetAmount * wetSampleValue);
 
-				for (size_t outChannelIdx = 0; outChannelIdx < nChannelsOut; ++outChannelIdx)
-				{
-					AkReal32* AK_RESTRICT pOutBuf = (AkReal32 * AK_RESTRICT)out_pBuffer->GetChannel(outChannelIdx) + out_pBuffer->uValidFrames;
-					pOutBuf[i] = outputSampleValue;
-				}
+                for (size_t outChannelIdx = 0; outChannelIdx < nChannelsOut; ++outChannelIdx)
+                {
+                    AkReal32* AK_RESTRICT pOutBuf = (AkReal32 * AK_RESTRICT)out_pBuffer->GetChannel(outChannelIdx) + out_pBuffer->uValidFrames;
+                    pOutBuf[i] = outputSampleValue;
+                }
             }
         }
 
         uFramesProduced = nSamples;
 
 #if DEBUG_PERFORM
-		AKPLATFORM::OutputDebugMsg("Produced ");
-		AKPLATFORM::OutputDebugMsg(std::to_string(nSamples).c_str());
-		AKPLATFORM::OutputDebugMsg(" frames");
-		AKPLATFORM::OutputDebugMsg("\n");
+        AKPLATFORM::OutputDebugMsg("Produced ");
+        AKPLATFORM::OutputDebugMsg(std::to_string(nSamples).c_str());
+        AKPLATFORM::OutputDebugMsg(" frames");
+        AKPLATFORM::OutputDebugMsg("\n");
 #endif
 
-	}
-	else {
+    }
+    else {
 
 #if DEBUG_PERFORM
-		AKPLATFORM::OutputDebugMsg("Waiting...");
-		AKPLATFORM::OutputDebugMsg("\n");
+        AKPLATFORM::OutputDebugMsg("Waiting...");
+        AKPLATFORM::OutputDebugMsg("\n");
 #endif
 
-	}
+    }
 
     // ----------------------------------------------------------------
     // Update effect plugin state
 
-	in_pBuffer->uValidFrames -= uFramesConsumed;
-	out_pBuffer->uValidFrames += uFramesProduced;
+    in_pBuffer->uValidFrames -= uFramesConsumed;
+    out_pBuffer->uValidFrames += uFramesProduced;
 
-	if (in_pBuffer->eState == AK_NoMoreData && in_pBuffer->uValidFrames == 0)
-		out_pBuffer->eState = AK_NoMoreData;
-	else if (out_pBuffer->uValidFrames == out_pBuffer->MaxFrames())
-		out_pBuffer->eState = AK_DataReady;
-	else
-		out_pBuffer->eState = AK_DataNeeded;
+    if (in_pBuffer->eState == AK_NoMoreData && in_pBuffer->uValidFrames == 0)
+        out_pBuffer->eState = AK_NoMoreData;
+    else if (out_pBuffer->uValidFrames == out_pBuffer->MaxFrames())
+        out_pBuffer->eState = AK_DataReady;
+    else
+        out_pBuffer->eState = AK_DataNeeded;
 
 }
 
@@ -377,8 +377,8 @@ void RaveWwiseFX::ModelPerform()
     {
         c10::InferenceMode guard(true);
 
-		at::Tensor latent_traj;
-		at::Tensor latent_traj_mean;
+        at::Tensor latent_traj;
+        at::Tensor latent_traj_mean;
 
         // --------------------------------
         // Setup parameters
@@ -387,37 +387,37 @@ void RaveWwiseFX::ModelPerform()
         int input_size = static_cast<int>(pow(2, _latencyMode));
 
         // RTPC
-		const bool use_prior = _fxParams->RTPC.bUsePrior;
-		const float prior_temperature = _fxParams->RTPC.fPriorTemperature;
+        const bool use_prior = _fxParams->RTPC.bUsePrior;
+        const float prior_temperature = _fxParams->RTPC.fPriorTemperature;
         const float jitter_amount = _fxParams->RTPC.fLatentJitter;
         const float width = _fxParams->RTPC.fOutputWidth * 0.01f;
 
 #if DEBUG_PERFORM
-		AKPLATFORM::OutputDebugMsg("\n");
+        AKPLATFORM::OutputDebugMsg("\n");
         AKPLATFORM::OutputDebugMsg("ModelPerform():");
-		AKPLATFORM::OutputDebugMsg("\n");
+        AKPLATFORM::OutputDebugMsg("\n");
 
         // Dump full model to string
-		//AKPLATFORM::OutputDebugMsg("\n");
-		//AKPLATFORM::OutputDebugMsg(_rave->dump_to_str().c_str());
-		//AKPLATFORM::OutputDebugMsg("\n");
-		//AKPLATFORM::OutputDebugMsg("\n");
+        //AKPLATFORM::OutputDebugMsg("\n");
+        //AKPLATFORM::OutputDebugMsg(_rave->dump_to_str().c_str());
+        //AKPLATFORM::OutputDebugMsg("\n");
+        //AKPLATFORM::OutputDebugMsg("\n");
 
-		AKPLATFORM::OutputDebugMsg("Latency mode exponent: ");
-		AKPLATFORM::OutputDebugMsg(std::to_string(_latencyMode).c_str());
-		AKPLATFORM::OutputDebugMsg(", Input size value: ");
-		AKPLATFORM::OutputDebugMsg(std::to_string(input_size).c_str());
-		AKPLATFORM::OutputDebugMsg("\n");
+        AKPLATFORM::OutputDebugMsg("Latency mode exponent: ");
+        AKPLATFORM::OutputDebugMsg(std::to_string(_latencyMode).c_str());
+        AKPLATFORM::OutputDebugMsg(", Input size value: ");
+        AKPLATFORM::OutputDebugMsg(std::to_string(input_size).c_str());
+        AKPLATFORM::OutputDebugMsg("\n");
 
-		AKPLATFORM::OutputDebugMsg("Has prior: ");
-		AKPLATFORM::OutputDebugMsg(std::to_string(_rave->hasPrior()).c_str());
-		AKPLATFORM::OutputDebugMsg(", Use prior: ");
-		AKPLATFORM::OutputDebugMsg(std::to_string(use_prior).c_str());
-		AKPLATFORM::OutputDebugMsg("\n");
+        AKPLATFORM::OutputDebugMsg("Has prior: ");
+        AKPLATFORM::OutputDebugMsg(std::to_string(_rave->hasPrior()).c_str());
+        AKPLATFORM::OutputDebugMsg(", Use prior: ");
+        AKPLATFORM::OutputDebugMsg(std::to_string(use_prior).c_str());
+        AKPLATFORM::OutputDebugMsg("\n");
 
-		AKPLATFORM::OutputDebugMsg("Prior temperature: ");
-		AKPLATFORM::OutputDebugMsg(std::to_string(prior_temperature).c_str());
-		AKPLATFORM::OutputDebugMsg("\n");
+        AKPLATFORM::OutputDebugMsg("Prior temperature: ");
+        AKPLATFORM::OutputDebugMsg(std::to_string(prior_temperature).c_str());
+        AKPLATFORM::OutputDebugMsg("\n");
 #endif
 
         if (_rave->hasPrior() && use_prior)
@@ -437,13 +437,13 @@ void RaveWwiseFX::ModelPerform()
             AKPLATFORM::OutputDebugMsg("Current input size: ");
             for (const auto input_size : frame.sizes())
             {
-	            AKPLATFORM::OutputDebugMsg(std::to_string(input_size).c_str());
-	            AKPLATFORM::OutputDebugMsg(", ");
+                AKPLATFORM::OutputDebugMsg(std::to_string(input_size).c_str());
+                AKPLATFORM::OutputDebugMsg(", ");
             }
             AKPLATFORM::OutputDebugMsg("\n");
 #endif
 
-			// --------------------------------
+            // --------------------------------
             // Encode
             if (_rave->hasMethod("encode_amortized"))
             {
@@ -454,21 +454,21 @@ void RaveWwiseFX::ModelPerform()
                 at::Tensor latent_traj_std = latent_probs[1];
 
 #if DEBUG_PERFORM
-				AKPLATFORM::OutputDebugMsg("Mean shape: ");
-				for (const auto mean_size : latent_traj_mean.sizes())
-				{
-					AKPLATFORM::OutputDebugMsg(std::to_string(mean_size).c_str());
-					AKPLATFORM::OutputDebugMsg(", ");
-				}
-				AKPLATFORM::OutputDebugMsg("\n");
+                AKPLATFORM::OutputDebugMsg("Mean shape: ");
+                for (const auto mean_size : latent_traj_mean.sizes())
+                {
+                    AKPLATFORM::OutputDebugMsg(std::to_string(mean_size).c_str());
+                    AKPLATFORM::OutputDebugMsg(", ");
+                }
+                AKPLATFORM::OutputDebugMsg("\n");
 
-				AKPLATFORM::OutputDebugMsg("Std shape: ");
-				for (const auto std_size : latent_traj_std.sizes())
-				{
-					AKPLATFORM::OutputDebugMsg(std::to_string(std_size).c_str());
-					AKPLATFORM::OutputDebugMsg(", ");
-				}
-				AKPLATFORM::OutputDebugMsg("\n");
+                AKPLATFORM::OutputDebugMsg("Std shape: ");
+                for (const auto std_size : latent_traj_std.sizes())
+                {
+                    AKPLATFORM::OutputDebugMsg(std::to_string(std_size).c_str());
+                    AKPLATFORM::OutputDebugMsg(", ");
+                }
+                AKPLATFORM::OutputDebugMsg("\n");
 #endif
 
                 latent_traj = latent_traj_mean +
@@ -487,8 +487,8 @@ void RaveWwiseFX::ModelPerform()
         AKPLATFORM::OutputDebugMsg("Latent traj shape: ");
         for (const auto latent_traj_size : latent_traj.sizes())
         {
-	        AKPLATFORM::OutputDebugMsg(std::to_string(latent_traj_size).c_str());
-	        AKPLATFORM::OutputDebugMsg(", ");
+            AKPLATFORM::OutputDebugMsg(std::to_string(latent_traj_size).c_str());
+            AKPLATFORM::OutputDebugMsg(", ");
         }
         AKPLATFORM::OutputDebugMsg("\n");
 #endif
@@ -512,89 +512,89 @@ void RaveWwiseFX::ModelPerform()
         _rave->writeLatentBuffer(latent_traj_mean);
 
 #if DEBUG_PERFORM
-		AKPLATFORM::OutputDebugMsg("Latent scale & bias applied");
-		AKPLATFORM::OutputDebugMsg("\n");
+        AKPLATFORM::OutputDebugMsg("Latent scale & bias applied");
+        AKPLATFORM::OutputDebugMsg("\n");
 #endif
 
         // Add latent jitter on meaningful dimensions
         latent_traj = latent_traj + jitter_amount * torch::randn_like(latent_traj);
 
 #if DEBUG_PERFORM
-		AKPLATFORM::OutputDebugMsg("Jitter applied");
-		AKPLATFORM::OutputDebugMsg("\n");
+        AKPLATFORM::OutputDebugMsg("Jitter applied");
+        AKPLATFORM::OutputDebugMsg("\n");
 #endif
 
         // Fill missing dimensions with width parameter
 
-		int missing_dims = _rave->getFullLatentDimensions() - latent_traj.size(1);
+        int missing_dims = _rave->getFullLatentDimensions() - latent_traj.size(1);
 
-		if (_rave->isStereo() && missing_dims > 0)
-		{
+        if (_rave->isStereo() && missing_dims > 0)
+        {
 
-			torch::Tensor latent_trajL = latent_traj,
-				latent_trajR = latent_traj.clone();
-
-#if DEBUG_PERFORM
-		    AKPLATFORM::OutputDebugMsg("Latent size: ");
-		    AKPLATFORM::OutputDebugMsg(std::to_string(_rave->getFullLatentDimensions()).c_str());
-		    AKPLATFORM::OutputDebugMsg(", latent traj size: ");
-		    AKPLATFORM::OutputDebugMsg(std::to_string(latent_trajL.size(1)).c_str());
-		    AKPLATFORM::OutputDebugMsg(", missing dimensions: ");
-		    AKPLATFORM::OutputDebugMsg(std::to_string(missing_dims).c_str());
-
-		    AKPLATFORM::OutputDebugMsg("\n");
-#endif
-
-			at::Tensor latent_noiseL =
-				torch::randn({ 1, missing_dims, latent_trajL.size(2) });
-			at::Tensor latent_noiseR =
-				(1 - width) * latent_noiseL +
-				width * torch::randn({ 1, missing_dims, latent_trajL.size(2) });
+            torch::Tensor latent_trajL = latent_traj,
+                latent_trajR = latent_traj.clone();
 
 #if DEBUG_PERFORM
-			AKPLATFORM::OutputDebugMsg("After width: ");
-			for (const auto latentNoiseLSize : latent_noiseL.sizes())
-			{
-				AKPLATFORM::OutputDebugMsg(std::to_string(latentNoiseLSize).c_str());
-				AKPLATFORM::OutputDebugMsg(", ");
-			}
-			AKPLATFORM::OutputDebugMsg("\n");
+            AKPLATFORM::OutputDebugMsg("Latent size: ");
+            AKPLATFORM::OutputDebugMsg(std::to_string(_rave->getFullLatentDimensions()).c_str());
+            AKPLATFORM::OutputDebugMsg(", latent traj size: ");
+            AKPLATFORM::OutputDebugMsg(std::to_string(latent_trajL.size(1)).c_str());
+            AKPLATFORM::OutputDebugMsg(", missing dimensions: ");
+            AKPLATFORM::OutputDebugMsg(std::to_string(missing_dims).c_str());
+
+            AKPLATFORM::OutputDebugMsg("\n");
 #endif
 
-			latent_trajL = torch::cat({ latent_trajL, latent_noiseL }, 1);
-			latent_trajR = torch::cat({ latent_trajR, latent_noiseR }, 1);
+            at::Tensor latent_noiseL =
+                torch::randn({ 1, missing_dims, latent_trajL.size(2) });
+            at::Tensor latent_noiseR =
+                (1 - width) * latent_noiseL +
+                width * torch::randn({ 1, missing_dims, latent_trajL.size(2) });
+
+#if DEBUG_PERFORM
+            AKPLATFORM::OutputDebugMsg("After width: ");
+            for (const auto latentNoiseLSize : latent_noiseL.sizes())
+            {
+                AKPLATFORM::OutputDebugMsg(std::to_string(latentNoiseLSize).c_str());
+                AKPLATFORM::OutputDebugMsg(", ");
+            }
+            AKPLATFORM::OutputDebugMsg("\n");
+#endif
+
+            latent_trajL = torch::cat({ latent_trajL, latent_noiseL }, 1);
+            latent_trajR = torch::cat({ latent_trajR, latent_noiseR }, 1);
         
 
 #if DEBUG_PERFORM
-		    AKPLATFORM::OutputDebugMsg("Latent processed");
-		    AKPLATFORM::OutputDebugMsg("\n");
+            AKPLATFORM::OutputDebugMsg("Latent processed");
+            AKPLATFORM::OutputDebugMsg("\n");
 #endif
 
             latent_traj = torch::cat({ latent_trajL, latent_trajR }, 0);
 
 #if DEBUG_PERFORM
-			AKPLATFORM::OutputDebugMsg("New latent traj shape: ");
-			for (const auto latent_traj_size : latent_traj.sizes())
-			{
-				AKPLATFORM::OutputDebugMsg(std::to_string(latent_traj_size).c_str());
-				AKPLATFORM::OutputDebugMsg(", ");
-			}
-			AKPLATFORM::OutputDebugMsg("\n");
+            AKPLATFORM::OutputDebugMsg("New latent traj shape: ");
+            for (const auto latent_traj_size : latent_traj.sizes())
+            {
+                AKPLATFORM::OutputDebugMsg(std::to_string(latent_traj_size).c_str());
+                AKPLATFORM::OutputDebugMsg(", ");
+            }
+            AKPLATFORM::OutputDebugMsg("\n");
 #endif
         }
 
         // --------------------------------
-		// Decode
+        // Decode
         at::Tensor out = _rave->decode(latent_traj);
 
 #if DEBUG_PERFORM
-		AKPLATFORM::OutputDebugMsg("Out shape: ");
+        AKPLATFORM::OutputDebugMsg("Out shape: ");
         for (const auto out_size : out.sizes())
         {
-			AKPLATFORM::OutputDebugMsg(std::to_string(out_size).c_str());
-			AKPLATFORM::OutputDebugMsg(", ");
+            AKPLATFORM::OutputDebugMsg(std::to_string(out_size).c_str());
+            AKPLATFORM::OutputDebugMsg(", ");
         }
-		AKPLATFORM::OutputDebugMsg("\n");
+        AKPLATFORM::OutputDebugMsg("\n");
 #endif
         
         // From RAVE VST:
@@ -607,13 +607,13 @@ void RaveWwiseFX::ModelPerform()
         }
 
         const int out_indexL = 0;
-		const int out_indexR = (out.sizes()[1] > 1 ? 1 : 0); // Use right channel only if available
-		at::Tensor outL = out.index({ 0, out_indexL, at::indexing::Slice() });
-		at::Tensor outR = out.index({ 0, out_indexR, at::indexing::Slice() });
+        const int out_indexR = (out.sizes()[1] > 1 ? 1 : 0); // Use right channel only if available
+        at::Tensor outL = out.index({ 0, out_indexL, at::indexing::Slice() });
+        at::Tensor outR = out.index({ 0, out_indexR, at::indexing::Slice() });
 
 #if DEBUG_PERFORM
-		AKPLATFORM::OutputDebugMsg("Latent decoded");
-		AKPLATFORM::OutputDebugMsg("\n");
+        AKPLATFORM::OutputDebugMsg("Latent decoded");
+        AKPLATFORM::OutputDebugMsg("\n");
 #endif
 
         float* out_dataPtrL, * out_dataPtrR;
@@ -641,7 +641,7 @@ void RaveWwiseFX::ModelPerform()
 
 void RaveWwiseFX::DetectAvailableModels()
 {
-	// TODO
+    // TODO
 }
 
 void RaveWwiseFX::Mute()
@@ -676,17 +676,17 @@ void RaveWwiseFX::UpdateBufferSizes()
     float b = validBufferSizes.end;
 
 #if DEBUG_PERFORM
-	AKPLATFORM::OutputDebugMsg("\n");
-	AKPLATFORM::OutputDebugMsg("UpdateBufferSizes(): ");
-	AKPLATFORM::OutputDebugMsg("\n");
+    AKPLATFORM::OutputDebugMsg("\n");
+    AKPLATFORM::OutputDebugMsg("UpdateBufferSizes(): ");
+    AKPLATFORM::OutputDebugMsg("\n");
 
-	AKPLATFORM::OutputDebugMsg("Initial latency mode: ");
-	AKPLATFORM::OutputDebugMsg(std::to_string(_latencyMode).c_str());
-	AKPLATFORM::OutputDebugMsg(" -- valid buffer sizes range from ");
-	AKPLATFORM::OutputDebugMsg(std::to_string(a).c_str());
-	AKPLATFORM::OutputDebugMsg(" to ");
-	AKPLATFORM::OutputDebugMsg(std::to_string(b).c_str());
-	AKPLATFORM::OutputDebugMsg("\n");
+    AKPLATFORM::OutputDebugMsg("Initial latency mode: ");
+    AKPLATFORM::OutputDebugMsg(std::to_string(_latencyMode).c_str());
+    AKPLATFORM::OutputDebugMsg(" -- valid buffer sizes range from ");
+    AKPLATFORM::OutputDebugMsg(std::to_string(a).c_str());
+    AKPLATFORM::OutputDebugMsg(" to ");
+    AKPLATFORM::OutputDebugMsg(std::to_string(b).c_str());
+    AKPLATFORM::OutputDebugMsg("\n");
 #endif
 
     const float bufferSize = pow(2, _latencyMode);
@@ -694,9 +694,9 @@ void RaveWwiseFX::UpdateBufferSizes()
     {
 
 #if DEBUG_PERFORM
-		AKPLATFORM::OutputDebugMsg("Latency mode too low; setting rate to: ");
-		AKPLATFORM::OutputDebugMsg(std::to_string(log2(a)).c_str());
-		AKPLATFORM::OutputDebugMsg("\n");
+        AKPLATFORM::OutputDebugMsg("Latency mode too low; setting rate to: ");
+        AKPLATFORM::OutputDebugMsg(std::to_string(log2(a)).c_str());
+        AKPLATFORM::OutputDebugMsg("\n");
 #endif
 
         _latencyMode = static_cast<int>(log2(a));
@@ -705,9 +705,9 @@ void RaveWwiseFX::UpdateBufferSizes()
     {
 
 #if DEBUG_PERFORM
-		AKPLATFORM::OutputDebugMsg("Latency mode too high; setting rate to: ");
-		AKPLATFORM::OutputDebugMsg(std::to_string(log2(b)).c_str());
-		AKPLATFORM::OutputDebugMsg("\n");
+        AKPLATFORM::OutputDebugMsg("Latency mode too high; setting rate to: ");
+        AKPLATFORM::OutputDebugMsg(std::to_string(log2(b)).c_str());
+        AKPLATFORM::OutputDebugMsg("\n");
 #endif
 
         _latencyMode = static_cast<int>(log2(b));

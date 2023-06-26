@@ -448,7 +448,7 @@ for the documentation about the plugin xml format
         <DefaultValue></DefaultValue>
         <AudioEnginePropertyID>28</AudioEnginePropertyID>
       </Property>
-		
+    
       <Property Name="LatencyCompensationSamples" Type="int32" SupportRTPCType="Exclusive" DisplayName="Dry/Wet Latency Compensation (Samples)" DisplayGroup="Output">
         <DefaultValue>0</DefaultValue>
         <AudioEnginePropertyID>29</AudioEnginePropertyID>

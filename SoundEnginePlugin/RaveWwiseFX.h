@@ -70,7 +70,7 @@ public:
     RaveWwiseFX();
     ~RaveWwiseFX();
 
-	//------------------------------------------------------------------------------------------------------------------
+    //------------------------------------------------------------------------------------------------------------------
     // IAkEffectPlugin::
 
     /// Plug-in initialization.
@@ -96,35 +96,35 @@ public:
     /// Return AK_DataReady or AK_NoMoreData, depending if there would be audio output or not at that point.
     AKRESULT TimeSkip(AkUInt32 &io_uFrames) override;
 
-	//------------------------------------------------------------------------------------------------------------------
+    //------------------------------------------------------------------------------------------------------------------
     // RaveAP ported functions
 
     /// Perform RAVE model inference for an input buffer
-	void ModelPerform();
+    void ModelPerform();
 
     /// Detect the currently available models
-	void DetectAvailableModels();
+    void DetectAvailableModels();
 
     /// Mute the effect plugin
-	void Mute();
+    void Mute();
 
     /// Unmute the effect plugin
-	void Unmute();
+    void Unmute();
 
     /// Whether or not the plugin is currently muted
     bool GetIsMuted() const;
 
-	/// Get whether a model has been loaded
-	bool GetModelLoaded() const;
+    /// Get whether a model has been loaded
+    bool GetModelLoaded() const;
 
-	/// Set whether a model has been loaded
-	void SetModelLoaded(bool loaded);
-	
+    /// Set whether a model has been loaded
+    void SetModelLoaded(bool loaded);
+    
     /// Update internal buffer sizes based on latency settings
     void UpdateBufferSizes();
 
     /// Update the engine (i.e. our internal RAVE instance) with a new model
-	void UpdateEngine(const std::string& modelFile);
+    void UpdateEngine(const std::string& modelFile);
 
     //------------------------------------------------------------------------------------------------------------------
     // RaveAP ported variables
@@ -140,7 +140,7 @@ private:
     AK::IAkEffectPluginContext* _fxContext { nullptr };
 
     //------------------------------------------------------------------------------------------------------------------
-	// RaveAP ported variables
+    // RaveAP ported variables
 
     std::mutex _engineUpdateMutex { };
     std::unique_ptr<BS::thread_pool> _engineThreadPool { nullptr };
@@ -159,8 +159,8 @@ private:
     
     std::atomic<bool> _isMuted { true };
 
-	//------------------------------------------------------------------------------------------------------------------
-	// Custom variables
+    //------------------------------------------------------------------------------------------------------------------
+    // Custom variables
 
     std::atomic<bool> _modelLoaded { false };
     int _modelLoadTimeSamples { 0 };

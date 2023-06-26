@@ -43,4 +43,4 @@ public:
     bool GetBankParameters(const GUID & in_guidPlatform, AK::Wwise::Plugin::DataWriter& in_dataWriter) const override;
 };
 
-DECLARE_AUDIOPLUGIN_CONTAINER(RaveWwise);	// Exposes our PluginContainer structure that contains the info for our plugin
+DECLARE_AUDIOPLUGIN_CONTAINER(RaveWwise);   // Exposes our PluginContainer structure that contains the info for our plugin

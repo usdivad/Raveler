@@ -54,12 +54,12 @@ public:
     } catch (const c10::Error &e) {
 
 #if DEBUG_MODEL
-	  AKPLATFORM::OutputDebugMsg("\n[ ] RAVE - Error loading model: ");
-	  AKPLATFORM::OutputDebugMsg(rave_model_file.c_str());
-	  AKPLATFORM::OutputDebugMsg("\t // ");
-	  AKPLATFORM::OutputDebugMsg(e.what());
-	  AKPLATFORM::OutputDebugMsg("\t // ");
-	  AKPLATFORM::OutputDebugMsg(e.msg().c_str());
+    AKPLATFORM::OutputDebugMsg("\n[ ] RAVE - Error loading model: ");
+    AKPLATFORM::OutputDebugMsg(rave_model_file.c_str());
+    AKPLATFORM::OutputDebugMsg("\t // ");
+    AKPLATFORM::OutputDebugMsg(e.what());
+    AKPLATFORM::OutputDebugMsg("\t // ");
+    AKPLATFORM::OutputDebugMsg(e.msg().c_str());
 #endif
 
       return;
@@ -74,156 +74,156 @@ public:
 #if DEBUG_MODEL
     AKPLATFORM::OutputDebugMsg("\n[ ] RAVE - Model successfully loaded: ");
     AKPLATFORM::OutputDebugMsg(rave_model_file.c_str());
-	AKPLATFORM::OutputDebugMsg("\n");
+  AKPLATFORM::OutputDebugMsg("\n");
 #endif
 
     bool found_model_as_attribute = false; // TODO: Check by module type instead (e.g. Combined vs. ScriptedRAVE)?
-	for (auto const& attr : named_attributes) {
-		if (attr.name == "_rave") {
-			found_model_as_attribute = true;
+  for (auto const& attr : named_attributes) {
+    if (attr.name == "_rave") {
+      found_model_as_attribute = true;
 
 #if DEBUG_MODEL
             AKPLATFORM::OutputDebugMsg("Found _rave model as named attribute");
-			AKPLATFORM::OutputDebugMsg("\n");
+      AKPLATFORM::OutputDebugMsg("\n");
 #endif
 
-		}
-		else if (attr.name == "stereo" || attr.name == "_rave.stereo") {
-			stereo = attr.value.toBool();
+    }
+    else if (attr.name == "stereo" || attr.name == "_rave.stereo") {
+      stereo = attr.value.toBool();
 
 #if DEBUG_MODEL
-			AKPLATFORM::OutputDebugMsg("Stereo? ");
-			AKPLATFORM::OutputDebugMsg(stereo ? "true" : "false");
-			AKPLATFORM::OutputDebugMsg("\n");
+      AKPLATFORM::OutputDebugMsg("Stereo? ");
+      AKPLATFORM::OutputDebugMsg(stereo ? "true" : "false");
+      AKPLATFORM::OutputDebugMsg("\n");
 #endif
 
-		}
-	}
+    }
+  }
 
-	if (found_model_as_attribute)
-	{
-		// Named buffers (for RAVE v1)
+  if (found_model_as_attribute)
+  {
+    // Named buffers (for RAVE v1)
 #if DEBUG_MODEL
-		AKPLATFORM::OutputDebugMsg("\n");
-		AKPLATFORM::OutputDebugMsg("Using named buffers");
-		AKPLATFORM::OutputDebugMsg("\n");
+    AKPLATFORM::OutputDebugMsg("\n");
+    AKPLATFORM::OutputDebugMsg("Using named buffers");
+    AKPLATFORM::OutputDebugMsg("\n");
 #endif
 
-		for (auto const& buf : named_buffers) {
-			if (buf.name == "_rave.sampling_rate") {
-				this->sr = buf.value.item<int>();
-
-#if DEBUG_MODEL
-				AKPLATFORM::OutputDebugMsg("\tSampling rate: ");
-				AKPLATFORM::OutputDebugMsg(std::to_string(this->sr).c_str());
-#endif
-			}
-			if (buf.name == "_rave.latent_size") {
-				this->latent_size = buf.value.item<int>();
+    for (auto const& buf : named_buffers) {
+      if (buf.name == "_rave.sampling_rate") {
+        this->sr = buf.value.item<int>();
 
 #if DEBUG_MODEL
-				AKPLATFORM::OutputDebugMsg("\tLatent size: ");
-				AKPLATFORM::OutputDebugMsg(std::to_string(this->latent_size).c_str());
+        AKPLATFORM::OutputDebugMsg("\tSampling rate: ");
+        AKPLATFORM::OutputDebugMsg(std::to_string(this->sr).c_str());
 #endif
-
-			}
-			if (buf.name == "encode_params") {
-				this->encode_params = buf.value;
+      }
+      if (buf.name == "_rave.latent_size") {
+        this->latent_size = buf.value.item<int>();
 
 #if DEBUG_MODEL
-				AKPLATFORM::OutputDebugMsg("\tEncode parameters: ");
-				AKPLATFORM::OutputDebugMsg(this->encode_params.toString().c_str());
+        AKPLATFORM::OutputDebugMsg("\tLatent size: ");
+        AKPLATFORM::OutputDebugMsg(std::to_string(this->latent_size).c_str());
 #endif
 
-			}
-			if (buf.name == "decode_params") {
-				this->decode_params = buf.value;
+      }
+      if (buf.name == "encode_params") {
+        this->encode_params = buf.value;
 
 #if DEBUG_MODEL
-				AKPLATFORM::OutputDebugMsg("\tDecode parameters: ");
-				AKPLATFORM::OutputDebugMsg(this->decode_params.toString().c_str());
+        AKPLATFORM::OutputDebugMsg("\tEncode parameters: ");
+        AKPLATFORM::OutputDebugMsg(this->encode_params.toString().c_str());
 #endif
 
-			}
-			if (buf.name == "prior_params") {
-				this->prior_params = buf.value;
-				this->has_prior = true;
+      }
+      if (buf.name == "decode_params") {
+        this->decode_params = buf.value;
 
 #if DEBUG_MODEL
-				AKPLATFORM::OutputDebugMsg("\tPrior parameters: ");
-				AKPLATFORM::OutputDebugMsg(this->prior_params.toString().c_str());
+        AKPLATFORM::OutputDebugMsg("\tDecode parameters: ");
+        AKPLATFORM::OutputDebugMsg(this->decode_params.toString().c_str());
 #endif
 
-			}
-		}
-	}
-	else
-	{
-		// Named attributes (for ONNX / RAVE v2)
+      }
+      if (buf.name == "prior_params") {
+        this->prior_params = buf.value;
+        this->has_prior = true;
 
 #if DEBUG_MODEL
-		AKPLATFORM::OutputDebugMsg("\n");
-		AKPLATFORM::OutputDebugMsg("Using named attributes");
-		AKPLATFORM::OutputDebugMsg("\n");
+        AKPLATFORM::OutputDebugMsg("\tPrior parameters: ");
+        AKPLATFORM::OutputDebugMsg(this->prior_params.toString().c_str());
 #endif
 
-		for (auto const& attr : named_attributes) {
-			if (attr.name == "sampling_rate") {
-				this->sr = attr.value.toInt();
+      }
+    }
+  }
+  else
+  {
+    // Named attributes (for ONNX / RAVE v2)
 
 #if DEBUG_MODEL
-				AKPLATFORM::OutputDebugMsg("\tSampling rate: ");
-				AKPLATFORM::OutputDebugMsg(std::to_string(this->sr).c_str());
+    AKPLATFORM::OutputDebugMsg("\n");
+    AKPLATFORM::OutputDebugMsg("Using named attributes");
+    AKPLATFORM::OutputDebugMsg("\n");
 #endif
 
-			}
-			if (attr.name == "full_latent_size") { // TODO: Keep track of "latent_size" as well?
-				this->latent_size = attr.value.toInt();
+    for (auto const& attr : named_attributes) {
+      if (attr.name == "sampling_rate") {
+        this->sr = attr.value.toInt();
 
 #if DEBUG_MODEL
-				AKPLATFORM::OutputDebugMsg("\tLatent size: ");
-				AKPLATFORM::OutputDebugMsg(std::to_string(this->latent_size).c_str());
+        AKPLATFORM::OutputDebugMsg("\tSampling rate: ");
+        AKPLATFORM::OutputDebugMsg(std::to_string(this->sr).c_str());
 #endif
 
-			}
-			if (attr.name == "encode_params") {
-				this->encode_params = attr.value.toTensor();
+      }
+      if (attr.name == "full_latent_size") { // TODO: Keep track of "latent_size" as well?
+        this->latent_size = attr.value.toInt();
 
 #if DEBUG_MODEL
-				AKPLATFORM::OutputDebugMsg("\tEncode parameters: ");
-				AKPLATFORM::OutputDebugMsg(this->encode_params.toString().c_str());
+        AKPLATFORM::OutputDebugMsg("\tLatent size: ");
+        AKPLATFORM::OutputDebugMsg(std::to_string(this->latent_size).c_str());
 #endif
 
-			}
-			if (attr.name == "decode_params") {
-				this->decode_params = attr.value.toTensor();
+      }
+      if (attr.name == "encode_params") {
+        this->encode_params = attr.value.toTensor();
 
 #if DEBUG_MODEL
-				AKPLATFORM::OutputDebugMsg("\tDecode parameters: ");
-				AKPLATFORM::OutputDebugMsg(this->decode_params.toString().c_str());
+        AKPLATFORM::OutputDebugMsg("\tEncode parameters: ");
+        AKPLATFORM::OutputDebugMsg(this->encode_params.toString().c_str());
 #endif
 
-			}
-			if (attr.name == "prior_params") {
-				this->prior_params = attr.value.toTensor();
-				this->has_prior = true;
+      }
+      if (attr.name == "decode_params") {
+        this->decode_params = attr.value.toTensor();
 
 #if DEBUG_MODEL
-				AKPLATFORM::OutputDebugMsg("\tPrior parameters: ");
-				AKPLATFORM::OutputDebugMsg(this->prior_params.toString().c_str());
+        AKPLATFORM::OutputDebugMsg("\tDecode parameters: ");
+        AKPLATFORM::OutputDebugMsg(this->decode_params.toString().c_str());
 #endif
-			}
-		}
-	}
+
+      }
+      if (attr.name == "prior_params") {
+        this->prior_params = attr.value.toTensor();
+        this->has_prior = true;
+
+#if DEBUG_MODEL
+        AKPLATFORM::OutputDebugMsg("\tPrior parameters: ");
+        AKPLATFORM::OutputDebugMsg(this->prior_params.toString().c_str());
+#endif
+      }
+    }
+  }
     
 #if DEBUG_MODEL
-	AKPLATFORM::OutputDebugMsg("\tFull latent size: ");
-	AKPLATFORM::OutputDebugMsg(std::to_string(getFullLatentDimensions()).c_str());
+  AKPLATFORM::OutputDebugMsg("\tFull latent size: ");
+  AKPLATFORM::OutputDebugMsg(std::to_string(getFullLatentDimensions()).c_str());
 
-	AKPLATFORM::OutputDebugMsg("\tRatio: ");
-	AKPLATFORM::OutputDebugMsg(std::to_string(getModelRatio()).c_str());
+  AKPLATFORM::OutputDebugMsg("\tRatio: ");
+  AKPLATFORM::OutputDebugMsg(std::to_string(getModelRatio()).c_str());
 
-	AKPLATFORM::OutputDebugMsg("\n");
+  AKPLATFORM::OutputDebugMsg("\n");
 #endif
 
     c10::InferenceMode guard;
@@ -324,7 +324,7 @@ public:
   at::Tensor getLatentBuffer() { return latent_buffer; }
 
   bool hasMethod(const std::string& method_name) const {
-	return this->model.find_method(method_name).has_value();
+  return this->model.find_method(method_name).has_value();
   }
 
 private:

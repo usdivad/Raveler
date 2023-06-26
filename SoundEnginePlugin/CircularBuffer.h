@@ -85,15 +85,15 @@ void circular_buffer<in_type, out_type>::get(out_type *output_array, int N) {
 
 template <class in_type, class out_type>
 void circular_buffer<in_type, out_type>::push(in_type input) {
-	if (!_max_size)
-		return;
+  if (!_max_size)
+    return;
 
-	_buffer[_head] = out_type(input);
-	_head = (_head + 1) % _max_size;
-	if (_full)
-		_tail = (_tail + 1) % _max_size;
-	_full = _head == _tail;
-	_count++;
+  _buffer[_head] = out_type(input);
+  _head = (_head + 1) % _max_size;
+  if (_full)
+    _tail = (_tail + 1) % _max_size;
+  _full = _head == _tail;
+  _count++;
 }
 
 template <class in_type, class out_type>
@@ -117,17 +117,17 @@ out_type circular_buffer<in_type, out_type>::pop() {
 
 template <class in_type, class out_type>
 out_type circular_buffer<in_type, out_type>::peek(int i) {
-	out_type value = out_type();
+  out_type value = out_type();
 
-	if (!_max_size) {
-		return value;
-	}
+  if (!_max_size) {
+    return value;
+  }
 
-	if (!empty()) {
-		value = _buffer[(_tail + i) % _max_size];
-	}
+  if (!empty()) {
+    value = _buffer[(_tail + i) % _max_size];
+  }
 
-	return value;
+  return value;
 }
 
 template <class in_type, class out_type>
