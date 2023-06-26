@@ -154,7 +154,7 @@ private:
     std::unique_ptr<std::thread> _computeThread { nullptr };
 
     // Latency mode contains the power of 2 of the current refresh rate.
-    std::atomic<float> _latencyMode { 13 }; // min = 9, max = 15, default = 13
+    float _latencyMode { 13 }; // min = 9, max = 15, default = 13
 
     std::array<float, AVAILABLE_DIMS> _latentScale { 1.f };
     std::array<float, AVAILABLE_DIMS> _latentBias { 0.f };
