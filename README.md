@@ -10,14 +10,14 @@ Simply add a Raveler plugin instance anywhere in your effects chain, specify a m
 
 The plugin consists of 4 main categories of parameters:
 1. **Model Performance**
-	- **Latent Jitter:** Amount of random jitter/noise to add to all latent dimensions
+	- **Latent Noise:** Amount of random noise/jitter to add to all latent dimensions
 	- **Use Prior:** Whether or not to use the [prior](https://github.com/acids-ircam/RAVE#where-is-the-prior-), if available in the model
 	- **Prior Temperature:** The "temperature" to use when sampling the prior (only applies if we're using the prior)
 	- **Output Width:** Amount of sampling differences between output channels
 	- **Output Dry/Wet:** How much of the input (dry) vs. output (wet) signal to use for final audio output
-2. **Latent Dimensions (1-8)**
-	- **Latent Bias:** Which direction (and how much) to bias a given latent dimension in
-	- **Latent Scale:** How much to weigh a given latent dimension
+2. **Latent Dimensions (#1-8)**
+	- **Bias:** Which direction (and how much) to bias a given latent dimension in
+	- **Scale:** How much to weigh a given latent dimension
 3. **Buffer Settings**
 	- **Latency Mode:** Size of buffer (in samples) to use for model inference -- higher values result in higher audio quality but more latency
 	- **Dry/Wet Latency Compensation:** How long (in samples) to delay the dry signal by to compensate for latency
