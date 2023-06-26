@@ -1,6 +1,6 @@
 # Raveler
 
-Raveler is a plugin that allows you to run [RAVE](https://github.com/acids-ircam/RAVE) models directly within Wwise, enabling real-time timbre transfer via neural audio synthesis in a game audio setting.
+Raveler is a [Wwise plugin](https://www.audiokinetic.com/en/library/edge/?source=SDK&id=effectplugin.html) that runs [RAVE](https://github.com/acids-ircam/RAVE) models, enabling real-time timbre transfer via neural audio synthesis in a game audio setting.
 
 Much of the plugin implementation is based on the [RAVE VST](https://github.com/acids-ircam/rave_vst) project.
 
