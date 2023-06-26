@@ -153,9 +153,6 @@ private:
     std::vector<std::unique_ptr<float[]>> _inModel{ }, _outModel{ };
     std::unique_ptr<std::thread> _computeThread { nullptr };
 
-    std::atomic<float> _latentJitterValue { 0.f }; // min = 0, max = 3, default = 0
-    std::atomic<float> _widthValue { 100.f }; // min = 0, max = 200, default = 100
-
     // Latency mode contains the power of 2 of the current refresh rate.
     std::atomic<float> _latencyMode { 13 }; // min = 9, max = 15, default = 13
 

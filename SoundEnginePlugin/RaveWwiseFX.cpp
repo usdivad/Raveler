@@ -388,6 +388,8 @@ void RaveWwiseFX::ModelPerform()
         // RTPC
 		const bool usePrior = _fxParams->RTPC.bUsePrior;
 		const float priorTemperature = _fxParams->RTPC.fPriorTemperature;
+        const float jitter_amount = _fxParams->RTPC.fLatentJitter;
+        const float width = _fxParams->RTPC.fOutputWidth * 0.01f;
 
 #if DEBUG_PERFORM
 		AKPLATFORM::OutputDebugMsg("\n");
@@ -512,7 +514,6 @@ void RaveWwiseFX::ModelPerform()
 #endif
 
         // Add latent jitter on meaningful dimensions
-        float jitter_amount = _latentJitterValue.load();
         latent_traj = latent_traj + jitter_amount * torch::randn_like(latent_traj);
 
 #if DEBUG_PERFORM
@@ -541,8 +542,6 @@ void RaveWwiseFX::ModelPerform()
 		    AKPLATFORM::OutputDebugMsg("\n");
 #endif
 
-
-			float width = _widthValue.load() / 100.f;
 			at::Tensor latent_noiseL =
 				torch::randn({ 1, missing_dims, latent_trajL.size(2) });
 			at::Tensor latent_noiseR =
