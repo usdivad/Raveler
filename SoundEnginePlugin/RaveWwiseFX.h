@@ -149,13 +149,11 @@ private:
     std::unique_ptr<circular_buffer<float, float>[]> _inBuffer { nullptr };
     std::unique_ptr<circular_buffer<float, float>[]> _dryBuffer { nullptr };
     std::unique_ptr<circular_buffer<float, float>[]> _outBuffer { nullptr };
-
     std::vector<std::unique_ptr<float[]>> _inModel{ }, _outModel{ };
+
     std::unique_ptr<std::thread> _computeThread { nullptr };
 
-    // Latency mode contains the power of 2 of the current refresh rate.
-    float _latencyMode { 13 }; // min = 9, max = 15, default = 13
-
+    float _latencyMode { 13 }; // Latency mode = power of 2 of the current refresh rate (in samples)
     std::array<float, AVAILABLE_DIMS> _latentScale { 1.f };
     std::array<float, AVAILABLE_DIMS> _latentBias { 0.f };
     
@@ -166,8 +164,10 @@ private:
 
     std::atomic<bool> _modelLoaded { false };
     int _modelLoadTimeSamples { 0 };
+
     std::atomic<bool> _modelPerformed { false };
     int _modelPerformTimeSamples { 0 };
+
     int _dryLatencySamplesElapsed { 0 };
 
 };
