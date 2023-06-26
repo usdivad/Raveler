@@ -34,7 +34,7 @@ the specific language governing permissions and limitations under the License.
 
 //----------------------------------------------------------------------------------------------------------------------
 
-#define DEBUG_PERFORM 0
+#define DEBUG_PERFORM 1
 
 namespace RaveWwise
 {
@@ -373,7 +373,8 @@ AKRESULT RaveWwiseFX::TimeSkip(AkUInt32 &io_uFrames)
 
 void RaveWwiseFX::ModelPerform()
 {
-    if (_rave.get() && !_isMuted.load()) {
+    if (_rave.get() && !_isMuted.load())
+    {
         c10::InferenceMode guard(true);
 
 		at::Tensor latent_traj;
@@ -386,8 +387,8 @@ void RaveWwiseFX::ModelPerform()
         int input_size = static_cast<int>(pow(2, _latencyMode));
 
         // RTPC
-		const bool usePrior = _fxParams->RTPC.bUsePrior;
-		const float priorTemperature = _fxParams->RTPC.fPriorTemperature;
+		const bool use_prior = _fxParams->RTPC.bUsePrior;
+		const float prior_temperature = _fxParams->RTPC.fPriorTemperature;
         const float jitter_amount = _fxParams->RTPC.fLatentJitter;
         const float width = _fxParams->RTPC.fOutputWidth * 0.01f;
 
@@ -411,30 +412,32 @@ void RaveWwiseFX::ModelPerform()
 		AKPLATFORM::OutputDebugMsg("Has prior: ");
 		AKPLATFORM::OutputDebugMsg(std::to_string(_rave->hasPrior()).c_str());
 		AKPLATFORM::OutputDebugMsg(", Use prior: ");
-		AKPLATFORM::OutputDebugMsg(std::to_string(usePrior).c_str());
+		AKPLATFORM::OutputDebugMsg(std::to_string(use_prior).c_str());
 		AKPLATFORM::OutputDebugMsg("\n");
 
 		AKPLATFORM::OutputDebugMsg("Prior temperature: ");
-		AKPLATFORM::OutputDebugMsg(std::to_string(priorTemperature).c_str());
+		AKPLATFORM::OutputDebugMsg(std::to_string(prior_temperature).c_str());
 		AKPLATFORM::OutputDebugMsg("\n");
 #endif
 
-        if (_rave->hasPrior() && usePrior) {
+        if (_rave->hasPrior() && use_prior)
+        {
             // TODO: Prior performance seems choppy -- this is also the case with RAVE VST on Windows
             auto n_trajs = pow(2, _latencyMode) / _rave->getModelRatio();
-            latent_traj = _rave->sample_prior((int)n_trajs, priorTemperature);
+            latent_traj = _rave->sample_prior((int)n_trajs, prior_temperature);
             latent_traj_mean = latent_traj;
         }
-        else {
+        else
+        {
             int64_t sizes = { input_size };
             at::Tensor frame = torch::from_blob(_inModel[0].get(), sizes);
             frame = torch::reshape(frame, { 1, 1, input_size });
 
 #if DEBUG_PERFORM
             AKPLATFORM::OutputDebugMsg("Current input size: ");
-            for (const auto inputSize : frame.sizes())
+            for (const auto input_size : frame.sizes())
             {
-	            AKPLATFORM::OutputDebugMsg(std::to_string(inputSize).c_str());
+	            AKPLATFORM::OutputDebugMsg(std::to_string(input_size).c_str());
 	            AKPLATFORM::OutputDebugMsg(", ");
             }
             AKPLATFORM::OutputDebugMsg("\n");
@@ -442,7 +445,8 @@ void RaveWwiseFX::ModelPerform()
 
 			// --------------------------------
             // Encode
-            if (_rave->hasMethod("encode_amortized")) {
+            if (_rave->hasMethod("encode_amortized"))
+            {
 
                 // Mean and std from encode_amortized()
                 std::vector<torch::Tensor> latent_probs = _rave->encode_amortized(frame);
@@ -451,17 +455,17 @@ void RaveWwiseFX::ModelPerform()
 
 #if DEBUG_PERFORM
 				AKPLATFORM::OutputDebugMsg("Mean shape: ");
-				for (const auto meanSize : latent_traj_mean.sizes())
+				for (const auto mean_size : latent_traj_mean.sizes())
 				{
-					AKPLATFORM::OutputDebugMsg(std::to_string(meanSize).c_str());
+					AKPLATFORM::OutputDebugMsg(std::to_string(mean_size).c_str());
 					AKPLATFORM::OutputDebugMsg(", ");
 				}
 				AKPLATFORM::OutputDebugMsg("\n");
 
 				AKPLATFORM::OutputDebugMsg("Std shape: ");
-				for (const auto stdSize : latent_traj_std.sizes())
+				for (const auto std_size : latent_traj_std.sizes())
 				{
-					AKPLATFORM::OutputDebugMsg(std::to_string(stdSize).c_str());
+					AKPLATFORM::OutputDebugMsg(std::to_string(std_size).c_str());
 					AKPLATFORM::OutputDebugMsg(", ");
 				}
 				AKPLATFORM::OutputDebugMsg("\n");
@@ -469,10 +473,9 @@ void RaveWwiseFX::ModelPerform()
 
                 latent_traj = latent_traj_mean +
                     latent_traj_std * torch::randn_like(latent_traj_mean);
-
             }
-            else {
-
+            else
+            {
                 // Regular encode()
                 latent_traj = _rave->encode(frame);
                 latent_traj_mean = latent_traj;
@@ -482,9 +485,9 @@ void RaveWwiseFX::ModelPerform()
 
 #if DEBUG_PERFORM
         AKPLATFORM::OutputDebugMsg("Latent traj shape: ");
-        for (const auto latentTrajSize : latent_traj.sizes())
+        for (const auto latent_traj_size : latent_traj.sizes())
         {
-	        AKPLATFORM::OutputDebugMsg(std::to_string(latentTrajSize).c_str());
+	        AKPLATFORM::OutputDebugMsg(std::to_string(latent_traj_size).c_str());
 	        AKPLATFORM::OutputDebugMsg(", ");
         }
         AKPLATFORM::OutputDebugMsg("\n");
@@ -571,9 +574,9 @@ void RaveWwiseFX::ModelPerform()
 
 #if DEBUG_PERFORM
 			AKPLATFORM::OutputDebugMsg("New latent traj shape: ");
-			for (const auto latentTrajSize : latent_traj.sizes())
+			for (const auto latent_traj_size : latent_traj.sizes())
 			{
-				AKPLATFORM::OutputDebugMsg(std::to_string(latentTrajSize).c_str());
+				AKPLATFORM::OutputDebugMsg(std::to_string(latent_traj_size).c_str());
 				AKPLATFORM::OutputDebugMsg(", ");
 			}
 			AKPLATFORM::OutputDebugMsg("\n");
@@ -586,9 +589,9 @@ void RaveWwiseFX::ModelPerform()
 
 #if DEBUG_PERFORM
 		AKPLATFORM::OutputDebugMsg("Out shape: ");
-        for (const auto outSize : out.sizes())
+        for (const auto out_size : out.sizes())
         {
-			AKPLATFORM::OutputDebugMsg(std::to_string(outSize).c_str());
+			AKPLATFORM::OutputDebugMsg(std::to_string(out_size).c_str());
 			AKPLATFORM::OutputDebugMsg(", ");
         }
 		AKPLATFORM::OutputDebugMsg("\n");
@@ -603,24 +606,25 @@ void RaveWwiseFX::ModelPerform()
             out = out.transpose(0, 1);
         }
 
-		const int outIndexR = (out.sizes()[1] > 1 ? 1 : 0); // Use right channel only if available
-		at::Tensor outL = out.index({ 0, 0, at::indexing::Slice() });
-		at::Tensor outR = out.index({ 0, outIndexR, at::indexing::Slice() });
+        const int out_indexL = 0;
+		const int out_indexR = (out.sizes()[1] > 1 ? 1 : 0); // Use right channel only if available
+		at::Tensor outL = out.index({ 0, out_indexL, at::indexing::Slice() });
+		at::Tensor outR = out.index({ 0, out_indexR, at::indexing::Slice() });
 
 #if DEBUG_PERFORM
 		AKPLATFORM::OutputDebugMsg("Latent decoded");
 		AKPLATFORM::OutputDebugMsg("\n");
 #endif
 
-        float* outputDataPtrL, * outputDataPtrR;
-        outputDataPtrL = outL.data_ptr<float>();
-        outputDataPtrR = outR.data_ptr<float>();
+        float* out_dataPtrL, * out_dataPtrR;
+        out_dataPtrL = outL.data_ptr<float>();
+        out_dataPtrR = outR.data_ptr<float>();
 
         // Write to output buffers
         assert(input_size >= 0);
         for (size_t i = 0; i < (size_t)input_size; i++) {
-            _outModel[0][i] = outputDataPtrL[i];
-            _outModel[1][i] = outputDataPtrR[i];
+            _outModel[0][i] = out_dataPtrL[i];
+            _outModel[1][i] = out_dataPtrR[i];
         }
 
         _modelPerformed = true;
