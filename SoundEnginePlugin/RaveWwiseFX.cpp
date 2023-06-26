@@ -654,6 +654,21 @@ void RaveWwiseFX::Unmute()
     _isMuted.store(false);
 }
 
+bool RaveWwiseFX::GetIsMuted() const
+{
+    return _isMuted.load();
+}
+
+bool RaveWwiseFX::GetModelLoaded() const
+{
+    return _modelLoaded.load();
+}
+
+void RaveWwiseFX::SetModelLoaded(bool loaded)
+{
+    _modelLoaded.store(loaded);
+}
+
 void RaveWwiseFX::UpdateBufferSizes()
 {
     auto validBufferSizes = _rave->getValidBufferSizes();

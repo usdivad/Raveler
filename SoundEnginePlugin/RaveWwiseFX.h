@@ -112,19 +112,19 @@ public:
 	void Unmute();
 
     /// Whether or not the plugin is currently muted
-    bool GetIsMuted() const { return _isMuted.load(); }
+    bool GetIsMuted() const;
+
+	/// Get whether a model has been loaded
+	bool GetModelLoaded() const;
+
+	/// Set whether a model has been loaded
+	void SetModelLoaded(bool loaded);
 	
     /// Update internal buffer sizes based on latency settings
     void UpdateBufferSizes();
 
     /// Update the engine (i.e. our internal RAVE instance) with a new model
 	void UpdateEngine(const std::string& modelFile);
-
-	/// Get whether a model has been loaded
-	bool GetModelLoaded() { return _modelLoaded.load(); }
-
-    /// Set whether a model has been loaded
-    void SetModelLoaded(bool loaded) { _modelLoaded.store(loaded); }
 
     //------------------------------------------------------------------------------------------------------------------
     // RaveAP ported variables
