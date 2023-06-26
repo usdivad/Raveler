@@ -50,7 +50,6 @@ the specific language governing permissions and limitations under the License.
 #define DEBUG 0
 
 const size_t AVAILABLE_DIMS = 8;
-const std::vector<std::string> channel_modes = { "L", "R", "L + R" };
 
 //----------------------------------------------------------------------------------------------------------------------
 // RaveWwiseFX
