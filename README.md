@@ -67,3 +67,7 @@ The plugin consists of 4 main categories of parameters:
 8. Build and package for desired target platforms (**TODO: Windows example**)
 	- https://www.audiokinetic.com/en/library/edge/?source=SDK&id=effectplugin_tools_building.html
 	- Make sure to copy library files to their appropriate destinations as well
+
+## Licensing
+
+This work is licensed under [CC BY-NC 4.0](LICENSE), except for Wwise plugin scaffolding portions, which are licensed under [Apache 2.0](http://www.apache.org/licenses/LICENSE-2.0).
