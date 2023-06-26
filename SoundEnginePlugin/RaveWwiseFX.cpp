@@ -38,7 +38,7 @@ the specific language governing permissions and limitations under the License.
 
 namespace RaveWwise
 {
-    void modelPerform_callback(RaveWwiseFX* ap) { ap->ModelPerform(); }
+    void ModelPerform_Callback(RaveWwiseFX* ap) { ap->ModelPerform(); }
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -256,7 +256,7 @@ void RaveWwiseFX::Execute(AkAudioBuffer* in_pBuffer, AkUInt32 in_ulnOffset, AkAu
         _outBuffer[0].put(_outModel[0].get(), currentRefreshRate);
         _outBuffer[1].put(_outModel[1].get(), currentRefreshRate);
 
-        _computeThread = std::make_unique<std::thread>(RaveWwise::modelPerform_callback, this);
+        _computeThread = std::make_unique<std::thread>(RaveWwise::ModelPerform_Callback, this);
     }
 
 #if DEBUG_PERFORM
