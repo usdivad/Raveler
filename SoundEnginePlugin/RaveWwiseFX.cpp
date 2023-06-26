@@ -34,7 +34,7 @@ the specific language governing permissions and limitations under the License.
 
 //----------------------------------------------------------------------------------------------------------------------
 
-#define DEBUG_PERFORM 1
+#define DEBUG_PERFORM 0
 
 namespace RaveWwise
 {
