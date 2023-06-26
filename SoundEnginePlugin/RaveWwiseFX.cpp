@@ -119,9 +119,9 @@ AKRESULT RaveWwiseFX::Init(AK::IAkPluginMemAlloc* in_pAllocator, AK::IAkEffectPl
 	//       - Move entire model loading routine to plugin library registration step, to avoid re-loading unnecessarily with every effect instantiation at runtime? See https://www.audiokinetic.com/en/library/edge/?source=SDK&id=soundengine_plugins.html#fx_global_hooks
     //       - Allow relative paths + figure out platform-dependent file path handling
 
-    _modelLoaded = false;
+    SetModelLoaded(false);
     _modelLoadTimeSamples = 0;
-    _modelPerformed = false;
+    _modelPerformed.store(false);
     _modelPerformTimeSamples = 0;
     _dryLatencySamplesElapsed = 0;
 
@@ -191,12 +191,12 @@ void RaveWwiseFX::Execute(AkAudioBuffer* in_pBuffer, AkUInt32 in_ulnOffset, AkAu
 	const int nChannelsIn = (const int)uNumChannelsIn;
     const int nChannelsOut = (const int)uNumChannelsOut;
     
-    if (!_modelLoaded)
+    if (!_modelLoaded.load())
     {
         _modelLoadTimeSamples += nSamples;
     }
 
-    if (!_modelPerformed)
+    if (!_modelPerformed.load())
     {
         _modelPerformTimeSamples += nSamples;
     }
@@ -627,7 +627,7 @@ void RaveWwiseFX::ModelPerform()
             _outModel[1][i] = out_dataPtrR[i];
         }
 
-        _modelPerformed = true;
+        _modelPerformed.store(true);
     }
     else {
 

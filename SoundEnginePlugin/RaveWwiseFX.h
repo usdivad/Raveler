@@ -121,10 +121,10 @@ public:
 	void UpdateEngine(const std::string& modelFile);
 
 	/// Get whether a model has been loaded
-	bool GetModelLoaded() { return _modelLoaded; }
+	bool GetModelLoaded() { return _modelLoaded.load(); }
 
     /// Set whether a model has been loaded
-    void SetModelLoaded(bool loaded) { _modelLoaded = loaded; }
+    void SetModelLoaded(bool loaded) { _modelLoaded.store(loaded); }
 
     //------------------------------------------------------------------------------------------------------------------
     // RaveAP ported variables
@@ -164,11 +164,11 @@ private:
 	//------------------------------------------------------------------------------------------------------------------
 	// Custom variables
 
-    bool _modelLoaded = false;
-    int _modelLoadTimeSamples = 0;
-    bool _modelPerformed = false;
-    int _modelPerformTimeSamples = 0;
-    int _dryLatencySamplesElapsed = 0;
+    std::atomic<bool> _modelLoaded { false };
+    int _modelLoadTimeSamples { 0 };
+    std::atomic<bool> _modelPerformed { false };
+    int _modelPerformTimeSamples { 0 };
+    int _dryLatencySamplesElapsed { 0 };
 
 };
 
