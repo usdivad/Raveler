@@ -26,6 +26,8 @@ The plugin consists of 4 main categories of parameters:
 4. **Model Loading**
 	- Model File Path: Path to the RAVE model we wish to use
 
+All the parameters in the **Model Performance** and **Latent Dimensions** categories can be bound to RTPCs.
+
 ## Setup
 
 **(TODO: Set this up in CMake or something similar)**
