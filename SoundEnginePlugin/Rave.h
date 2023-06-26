@@ -37,6 +37,11 @@ namespace RaveWwise {
 }
 
 //----------------------------------------------------------------------------------------------------------------------
+// RAVE
+//----------------------------------------------------------------------------------------------------------------------
+
+/// Class that allows interfacing with RAVE models in real-time.
+/// Ported from RAVE VST's RAVE class -- see https://github.com/acids-ircam/rave_vst/blob/main/source/Rave.h
 
 class RAVE {
 

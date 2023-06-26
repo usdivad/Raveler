@@ -2,6 +2,13 @@
 #include <memory>
 #include <vector>
 
+//----------------------------------------------------------------------------------------------------------------------
+// circular_buffer
+//----------------------------------------------------------------------------------------------------------------------
+
+/// Circular buffer class.
+/// Ported from RAVE VST's circular_buffer -- see https://github.com/acids-ircam/rave_vst/blob/main/source/CircularBuffer.h
+
 template <class in_type, class out_type> class circular_buffer {
 public:
   circular_buffer();

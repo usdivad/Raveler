@@ -56,7 +56,8 @@ const std::vector<std::string> channel_modes = { "L", "R", "L + R" };
 // RaveWwiseFX
 //----------------------------------------------------------------------------------------------------------------------
 
-/// Wwise plugin that runs RAVE.
+/// Audio processor portion of the RaveWwise plugin.
+/// Largely ported from RAVE VST's RaveAP class -- see https://github.com/acids-ircam/rave_vst/blob/main/source/PluginProcessor.h
 
 /// See https://www.audiokinetic.com/library/edge/?source=SDK&id=soundengine__plugins__effects.html
 /// for the documentation about effect plug-ins

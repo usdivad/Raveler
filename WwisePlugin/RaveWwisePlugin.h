@@ -28,8 +28,15 @@ the specific language governing permissions and limitations under the License.
 
 #include <AK/Wwise/Plugin.h>
 
+//----------------------------------------------------------------------------------------------------------------------
+// RaveWwisePlugin
+//----------------------------------------------------------------------------------------------------------------------
+
+/// Authoring portion of the RaveWwise plugin.
+
 /// See https://www.audiokinetic.com/library/edge/?source=SDK&id=plugin__dll.html
 /// for the documentation about Authoring plug-ins
+
 class RaveWwisePlugin final
     : public AK::Wwise::Plugin::AudioPlugin
 {

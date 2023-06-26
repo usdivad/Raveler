@@ -96,7 +96,6 @@ enum class EChannelMode : AkUInt32
 
 // ----------------------------------------------------------------
 
-// TODO: Move some of these to non-RTPC params struct
 struct RaveWwiseRTPCParams
 {
     // Input
@@ -155,6 +154,12 @@ struct RaveWwiseNonRTPCParams
     // Custom
     AkOSChar* sModelFilePath;
 };
+
+//----------------------------------------------------------------------------------------------------------------------
+// RaveWwiseFXParams
+//----------------------------------------------------------------------------------------------------------------------
+
+/// Parameter node interface for the RaveWwise plugin
 
 struct RaveWwiseFXParams
     : public AK::IAkPluginParam
