@@ -31,6 +31,7 @@ the specific language governing permissions and limitations under the License.
 
 #include <algorithm>
 #include <cmath>
+#include <regex>
 
 //----------------------------------------------------------------------------------------------------------------------
 
@@ -114,10 +115,11 @@ AKRESULT RaveWwiseFX::Init(AK::IAkPluginMemAlloc* in_pAllocator, AK::IAkEffectPl
 
     // NOTE: We do direct AkOSChar*-to-char* conversion via casting here, since CONVERT_OSCHAR_TO_CHAR() returns incorrect results
     //
-    // TODO: - Escape backslashes for file paths ("\" --> "\\")
-    //       - Move the char-conversion/string-creation to RaveWwiseFXParams?
+    // TODO: - Move the char-conversion/string-creation to RaveWwiseFXParams?
     //       - Move entire model loading routine to plugin library registration step, to avoid re-loading unnecessarily with every effect instantiation at runtime? See https://www.audiokinetic.com/en/library/edge/?source=SDK&id=soundengine_plugins.html#fx_global_hooks
-    //       - Allow relative paths + figure out platform-dependent file path handling
+    //       - Allow relative paths
+    //       - Figure out platform-dependent file path handling (using std::filesystem::path::preferred_separator)
+    //       - Look into using plugin media or other binary data formats to avoid file path handling? See https://www.audiokinetic.com/en/library/edge/?source=SDK&id=effectplugin_media.html
 
     SetModelLoaded(false);
     _modelLoadTimeSamples = 0;
@@ -128,6 +130,8 @@ AKRESULT RaveWwiseFX::Init(AK::IAkPluginMemAlloc* in_pAllocator, AK::IAkEffectPl
     AkOSChar* modelFilePathOsStr = _fxParams->NonRTPC.sModelFilePath;
     char* modelFilePathCStr = reinterpret_cast<char*>(modelFilePathOsStr);
     std::string modelFilePath = std::string(modelFilePathCStr);
+    modelFilePath = std::regex_replace(modelFilePath, std::regex("\\\\"), "\\\\");
+
     UpdateEngine(modelFilePath);
 
     return AK_Success;
