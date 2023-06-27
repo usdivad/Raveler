@@ -159,9 +159,6 @@ AKRESULT RaveWwiseFX::GetPluginInfo(AkPluginInfo& out_rPluginInfo)
 
 void RaveWwiseFX::Execute(AkAudioBuffer* in_pBuffer, AkUInt32 in_ulnOffset, AkAudioBuffer* out_pBuffer)
 {
-    const AkUInt32 uNumChannelsIn = in_pBuffer->NumChannels();
-    const AkUInt32 uNumChannelsOut = out_pBuffer->NumChannels();
-
     // ----------------------------------------------------------------
     // Update RTPC params
     // TODO: Remaining params from RAVE VST
@@ -192,8 +189,8 @@ void RaveWwiseFX::Execute(AkAudioBuffer* in_pBuffer, AkUInt32 in_ulnOffset, AkAu
 
     // RAVE
     const int nSamples = in_pBuffer->uValidFrames;
-    const int nChannelsIn = (const int)uNumChannelsIn;
-    const int nChannelsOut = (const int)uNumChannelsOut;
+    const int nChannelsIn = in_pBuffer->NumChannels();
+    const int nChannelsOut = out_pBuffer->NumChannels();
     
     if (!_modelLoaded.load())
     {
