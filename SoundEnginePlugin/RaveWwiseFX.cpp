@@ -209,7 +209,7 @@ void RaveWwiseFX::Execute(AkAudioBuffer* in_pBuffer, AkUInt32 in_ulnOffset, AkAu
     // ----------------------------------------------------------------
     // Push input buffer contents to circular buffer
 
-    if (nChannelsIn < 1)
+    if (nChannelsIn < 1 || nChannelsOut < 1)
     {
         return;
     }
@@ -292,10 +292,8 @@ void RaveWwiseFX::Execute(AkAudioBuffer* in_pBuffer, AkUInt32 in_ulnOffset, AkAu
     AKPLATFORM::OutputDebugMsg("\n");
 #endif
 
-    if (_outBuffer[0].len() >= nSamples) {
-        AkReal32* AK_RESTRICT pOutBufL = (AkReal32 * AK_RESTRICT)out_pBuffer->GetChannel(0) + out_pBuffer->uValidFrames;
-        AkReal32* AK_RESTRICT pOutBufR = (AkReal32 * AK_RESTRICT)out_pBuffer->GetChannel(1) + out_pBuffer->uValidFrames;
-
+    if (_outBuffer[0].len() >= nSamples)
+    {
         for (size_t i = 0; i < nSamples; i++)
         {
             const float wetSampleValueL = _outBuffer[0].pop();
@@ -341,7 +339,8 @@ void RaveWwiseFX::Execute(AkAudioBuffer* in_pBuffer, AkUInt32 in_ulnOffset, AkAu
 #endif
 
     }
-    else {
+    else
+    {
 
 #if DEBUG_PERFORM
         AKPLATFORM::OutputDebugMsg("Waiting...");
@@ -357,12 +356,17 @@ void RaveWwiseFX::Execute(AkAudioBuffer* in_pBuffer, AkUInt32 in_ulnOffset, AkAu
     out_pBuffer->uValidFrames += uFramesProduced;
 
     if (in_pBuffer->eState == AK_NoMoreData && in_pBuffer->uValidFrames == 0)
+    {
         out_pBuffer->eState = AK_NoMoreData;
+    }
     else if (out_pBuffer->uValidFrames == out_pBuffer->MaxFrames())
+    {
         out_pBuffer->eState = AK_DataReady;
+    }
     else
+    {
         out_pBuffer->eState = AK_DataNeeded;
-
+    }
 }
 
 AKRESULT RaveWwiseFX::TimeSkip(AkUInt32 &io_uFrames)
