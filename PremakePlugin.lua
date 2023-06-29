@@ -39,6 +39,10 @@ Plugin.authoring = {}
 -- SDK STATIC PLUGIN SECTION
 Plugin.sdk.static.includedirs = -- https://github.com/premake/premake-core/wiki/includedirs
 {
+    "../Libraries/torch/libtorch/include",
+    "../Libraries/torch/libtorch/include/torch/csrc/api/include",
+    "../Libraries/onnx/onnxruntime/include",
+    "../Libraries/bs_thread_pool"
 }
 Plugin.sdk.static.files = -- https://github.com/premake/premake-core/wiki/files
 {
@@ -53,13 +57,21 @@ Plugin.sdk.static.excludes = -- https://github.com/premake/premake-core/wiki/rem
 }
 Plugin.sdk.static.links = -- https://github.com/premake/premake-core/wiki/links
 {
+    "c10",
+    "torch",
+    "torch_cpu",
+    "onnxruntime",
+    "onnxruntime_providers_shared"
 }
 Plugin.sdk.static.libsuffix = "FX"
 Plugin.sdk.static.libdirs = -- https://github.com/premake/premake-core/wiki/libdirs
 {
+    "../Libraries/torch/libtorch/lib",
+    "../Libraries/onnx/onnxruntime/lib"
 }
 Plugin.sdk.static.defines = -- https://github.com/premake/premake-core/wiki/defines
 {
+    "NOMINMAX"
 }
 
 -- SDK SHARED PLUGIN SECTION
