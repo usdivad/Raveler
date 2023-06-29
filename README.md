@@ -45,32 +45,22 @@ All the parameters in the **Model Performance** and **Latent Dimensions** catego
 
 2. Run Wwise premake step, substituting 2021.1.9.7847 with your version of Wwise: `python "C:\Program Files (x86)\Audiokinetic\Wwise 2021.1.9.7847\Scripts\Build\Plugins\wp.py" premake Authoring`
 
-3. Apply general settings to RaveWwise_Authoring_Windows_vc160 solution:
-	1. Retarget both RaveWwise and RaveWwiseFX projects to latest 10.0
+3. Apply settings to the generated solution: **(TODO: Add these to PremakePlugin.lua)**
+	1. Apply general settings to RaveWwise_Authoring_Windows_vc160 solution:
+		1. Retarget solution > Retarget both RaveWwise and RaveWwiseFX projects to latest Windows SDK version (e.g. 10.0)
+	2. Apply project-specific settings to the RaveWwiseFX project:
+		1. Properties > General > C++ Language Standard: `/std:c++17` (C++ 17 standard)
+			- This is required for BS::thread_pool
+		1. (optional, for debugging) Properties > C/C++ > Optimization > `Disabled (/Od)`
+		1. C/C++ > All Options > Additional Options: `/utf-8 /d2FH4- /GR %(AdditionalOptions)`
+			- `/GR` enables run-time type information (used for `std::dynamic_pointer_cast()` in `torch/nn/cloneable.h`)
 
-4. Apply library-specific settings to the RaveWwiseFX project:
-	1. General > C++ Language Standard: `/std:c++17` (C++ 17 standard)
-		- This is required for BS::thread_pool
+4. Build for Wwise authoring, either using Visual Studio or `python "C:\Program Files (x86)\Audiokinetic\Wwise 2021.1.9.7847\Scripts\Build\Plugins\wp.py" build -c Release -x x64 -t vc160 Authoring`
 
-5. Go to View > Property Manager > Add Existing Property Sheet and add `SoundEnginePlugin/RaveWwiseFXProperties.props`, **OR** apply the following settings manually, substituting 2021.1.9.7847 with your version of Wwise:
-	1. (optional, for debugging) Properties > C/C++ > Optimization > `Disabled (/Od)`
-	1. C/C++ > General > Additional Include Directories: `..\Libraries\torch\libtorch\include;..\Libraries\torch\libtorch\include\torch\csrc\api\include;..\Libraries\onnx\onnxruntime\include;C:\Program Files (x86)\Audiokinetic\Wwise 2021.1.9.7847\SDK\include;%(AdditionalIncludeDirectories)`
-		- This adds the LibTorch and ONNX directories to the include paths
-	1. C/C++ > Preprocessor > Preprocessor Definitions: `NDEBUG;WIN64;WIN32_LEAN_AND_MEAN;NOMINMAX;%(PreprocessorDefinitions)`
-		- `NOMINMAX` prevents conflicts with `std`
-	1. C/C++ > All Options > Additional Options: `/utf-8 /d2FH4- /GR %(AdditionalOptions)`
-		- `/GR` enables run-time type information (used for `std::dynamic_pointer_cast()` in `torch/nn/cloneable.h`)
-	1. Librarian > Additional Dependencies: `..\Libraries\torch\libtorch\lib\c10.lib;..\Libraries\torch\libtorch\lib\torch.lib;..\Libraries\torch\libtorch\lib\torch_cpu.lib;..\Libraries\onnx\onnxruntime\lib\onnxruntime.lib;..\Libraries\onnx\onnxruntime\lib\onnxruntime_providers_shared.lib;;;;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib`
-		- Adds dependencies needed for LibTorch and ONNX
-	1. Librarian > Additional Library Directories: `..\Libraries\torch\libtorch\lib;..\Libraries\onnx\onnxruntime\lib;%(AdditionalLibraryDirectories)`
-		- Adds library directories for LibTorch and ONNX
-
-6. Build for Wwise authoring, either using Visual Studio or `python "C:\Program Files (x86)\Audiokinetic\Wwise 2021.1.9.7847\Scripts\Build\Plugins\wp.py" build -c Release -x x64 -t vc160 Authoring`
-
-7. Copy library files (in `Libraries/torch/libtorch/lib` and `Libraries/onnx/onnxruntime/lib`) to `C:\Program Files (x86)\Audiokinetic\Wwise 2021.1.9.7847\Authoring\x64\Release\bin` (substituting 2021.1.9.7847 with your version of Wwise)
+5. Copy library files (in `Libraries/torch/libtorch/lib` and `Libraries/onnx/onnxruntime/lib`) to `C:\Program Files (x86)\Audiokinetic\Wwise 2021.1.9.7847\Authoring\x64\Release\bin` (substituting 2021.1.9.7847 with your version of Wwise)
 	- Make sure *all* the files are in the top-level of `bin`, e.g. `bin/onnxruntime.dll`, not `bin/onnx/onnxruntime.dll`)
 
-8. Build and package for desired target platforms (**TODO: Windows example**)
+6. Build and package for desired target platforms (**TODO: Windows example**)
 	- https://www.audiokinetic.com/en/library/edge/?source=SDK&id=effectplugin_tools_building.html
 	- Make sure to copy library files to their appropriate destinations as well
 
