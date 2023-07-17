@@ -43,7 +43,7 @@ All the parameters in the **Model Performance** and **Latent Dimensions** catego
 	4. Download BS::thread_pool 3.5.0 and add the BS_thread_pool.hpp header to `Libraries/bs_thread_pool` (so that the full path to the header is `Libraries/bs_thread_pool/BS_thread_pool.hpp`)
 		- https://github.com/bshoshany/thread-pool/releases/tag/v3.5.0
 
-2. Run Wwise premake step, substituting 2021.1.9.7847 with your version of Wwise: `python "C:\Program Files (x86)\Audiokinetic\Wwise 2021.1.9.7847\Scripts\Build\Plugins\wp.py" premake Authoring`
+2. Run Wwise premake step, substituting 2022.1.5.8242 with your version of Wwise: `python "C:\Program Files (x86)\Audiokinetic\Wwise 2022.1.5.8242\Scripts\Build\Plugins\wp.py" premake Authoring`
 
 3. Apply settings to the generated solution: **(TODO: Add these to PremakePlugin.lua)**
 	1. Apply general settings to RaveWwise_Authoring_Windows_vc160 solution:
@@ -55,9 +55,9 @@ All the parameters in the **Model Performance** and **Latent Dimensions** catego
 		1. C/C++ > All Options > Additional Options: `/utf-8 /d2FH4- /GR %(AdditionalOptions)`
 			- `/GR` enables run-time type information (used for `std::dynamic_pointer_cast()` in `torch/nn/cloneable.h`)
 
-4. Build for Wwise authoring, either using Visual Studio or `python "C:\Program Files (x86)\Audiokinetic\Wwise 2021.1.9.7847\Scripts\Build\Plugins\wp.py" build -c Release -x x64 -t vc160 Authoring`
+4. Build for Wwise authoring, either using Visual Studio or `python "C:\Program Files (x86)\Audiokinetic\Wwise 2022.1.5.8242\Scripts\Build\Plugins\wp.py" build -c Release -x x64 -t vc160 Authoring`
 
-5. Copy library files (in `Libraries/torch/libtorch/lib` and `Libraries/onnx/onnxruntime/lib`) to `C:\Program Files (x86)\Audiokinetic\Wwise 2021.1.9.7847\Authoring\x64\Release\bin` (substituting 2021.1.9.7847 with your version of Wwise)
+5. Copy library files (in `Libraries/torch/libtorch/lib` and `Libraries/onnx/onnxruntime/lib`) to `C:\Program Files (x86)\Audiokinetic\Wwise 2022.1.5.8242\Authoring\x64\Release\bin` (substituting 2022.1.5.8242 with your version of Wwise)
 	- Make sure *all* the files are in the top-level of `bin`, e.g. `bin/onnxruntime.dll`, not `bin/onnx/onnxruntime.dll`)
 
 6. Build and package for desired target platforms (**TODO: Windows example**)
