@@ -144,7 +144,8 @@ AKRESULT RaveWwiseFXParams::SetParamsBlock(const void* in_pParamsBlock, AkUInt32
 
     NonRTPC.uLatencyMode = READBANKDATA(AkUInt32, pParamsBlock, in_ulBlockSize);
 
-    NonRTPC.sModelFilePath = READBANKDATA(AkOSChar*, pParamsBlock, in_ulBlockSize);
+    AkUInt32 modelFilePathStringSize = 0;
+    NonRTPC.sModelFilePath = (AkOSChar*)(READBANKSTRING(pParamsBlock, in_ulBlockSize, modelFilePathStringSize));
 
     RTPC.iLatencyCompensationSamples = (AkInt32)(READBANKDATA(AkReal32, pParamsBlock, in_ulBlockSize));
 
