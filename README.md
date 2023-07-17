@@ -43,21 +43,31 @@ All the parameters in the **Model Performance** and **Latent Dimensions** catego
 	4. Download BS::thread_pool 3.5.0 and add the BS_thread_pool.hpp header to `Libraries/bs_thread_pool` (so that the full path to the header is `Libraries/bs_thread_pool/BS_thread_pool.hpp`)
 		- https://github.com/bshoshany/thread-pool/releases/tag/v3.5.0
 
-2. Run Wwise premake step, substituting 2022.1.5.8242 with your version of Wwise: `python "C:\Program Files (x86)\Audiokinetic\Wwise 2022.1.5.8242\Scripts\Build\Plugins\wp.py" premake Authoring`
-
-3. Apply settings to the generated solution: **(TODO: Add these to PremakePlugin.lua)**
-	1. Apply general settings to RaveWwise_Authoring_Windows_vc160 solution:
+2. Run Wwise premake step. Below is a Windows example (you can substitute 2022.1.5.8242 for your version of Wwise):
+```sh
+python "C:\Program Files (x86)\Audiokinetic\Wwise 2022.1.5.8242\Scripts\Build\Plugins\wp.py" premake Authoring
+python "C:\Program Files (x86)\Audiokinetic\Wwise 2022.1.5.8242\Scripts\Build\Plugins\wp.py" premake Windows_vc160
+```
+3. Apply settings to the generated solutions (following the above example, the solutions would be RaveWwise_Authoring_Windows_vc160.sln and RaveWwise_Windows_vc160.sln): **(TODO: Add these to PremakePlugin.lua)**
+	1. Apply general settings to the entire solution:
 		1. Retarget solution > Retarget both RaveWwise and RaveWwiseFX projects to latest Windows SDK version (e.g. 10.0)
 	2. Apply project-specific settings to the RaveWwiseFX project:
 		1. Properties > General > C++ Language Standard: `/std:c++17` (C++ 17 standard)
 			- This is required for BS::thread_pool
 		1. (optional, for debugging) Properties > C/C++ > Optimization > `Disabled (/Od)`
-		1. C/C++ > All Options > Additional Options: `/utf-8 /d2FH4- /GR %(AdditionalOptions)`
+		1. C/C++ > All Options > Additional Options: `/utf-8 /GR %(AdditionalOptions)`
 			- `/GR` enables run-time type information (used for `std::dynamic_pointer_cast()` in `torch/nn/cloneable.h`)
 
-4. Build for Wwise authoring, either using Visual Studio or `python "C:\Program Files (x86)\Audiokinetic\Wwise 2022.1.5.8242\Scripts\Build\Plugins\wp.py" build -c Release -x x64 -t vc160 Authoring` (substituting 2022.1.5.8242 with your version of Wwise)
+4. Build for desired platforms, either using Visual Studio or wp.py directly. Below is an example for authoring and Windows (you can substitute 2022.1.5.8242 for your version of Wwise):
+```sh
+python "C:\Program Files (x86)\Audiokinetic\Wwise 2022.1.5.8242\Scripts\Build\Plugins\wp.py" build Authoring -c Release -x x64 -t vc160
+python "C:\Program Files (x86)\Audiokinetic\Wwise 2022.1.5.8242\Scripts\Build\Plugins\wp.py" build Windows_vc160 -c Release -x x64
+```
 
-5. Copy library files, substituting 2022.1.5.8242 with your version of Wwise: `python "C:\Program Files (x86)\Audiokinetic\Wwise 2022.1.5.8242\Scripts\Build\Plugins\wp.py" package Authoring --version=2022.1.5.8242 --additional-artifacts-file=additional_artifacts.json -copy-artifacts`
+5. Copy library files for authoring, substituting 2022.1.5.8242 with your version of Wwise:
+```sh
+python "C:\Program Files (x86)\Audiokinetic\Wwise 2022.1.5.8242\Scripts\Build\Plugins\wp.py" package Authoring --version=2022.1.5.8242 --additional-artifacts-file=additional_artifacts.json -copy-artifacts
+```
 
 6. Package for desired target platforms. Below is a Windows example (you can substitute 2022.1.5.8242 for your version of Wwise):
 ```sh
