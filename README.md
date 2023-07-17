@@ -55,14 +55,22 @@ All the parameters in the **Model Performance** and **Latent Dimensions** catego
 		1. C/C++ > All Options > Additional Options: `/utf-8 /d2FH4- /GR %(AdditionalOptions)`
 			- `/GR` enables run-time type information (used for `std::dynamic_pointer_cast()` in `torch/nn/cloneable.h`)
 
-4. Build for Wwise authoring, either using Visual Studio or `python "C:\Program Files (x86)\Audiokinetic\Wwise 2022.1.5.8242\Scripts\Build\Plugins\wp.py" build -c Release -x x64 -t vc160 Authoring`
+4. Build for Wwise authoring, either using Visual Studio or `python "C:\Program Files (x86)\Audiokinetic\Wwise 2022.1.5.8242\Scripts\Build\Plugins\wp.py" build -c Release -x x64 -t vc160 Authoring` (substituting 2022.1.5.8242 with your version of Wwise)
 
-5. Copy library files (in `Libraries/torch/libtorch/lib` and `Libraries/onnx/onnxruntime/lib`) to `C:\Program Files (x86)\Audiokinetic\Wwise 2022.1.5.8242\Authoring\x64\Release\bin` (substituting 2022.1.5.8242 with your version of Wwise)
-	- Make sure *all* the files are in the top-level of `bin`, e.g. `bin/onnxruntime.dll`, not `bin/onnx/onnxruntime.dll`)
+5. Copy library files, substituting 2022.1.5.8242 with your version of Wwise: `python "C:\Program Files (x86)\Audiokinetic\Wwise 2022.1.5.8242\Scripts\Build\Plugins\wp.py" package Authoring --version=2022.1.5.8242 --additional-artifacts-file=additional_artifacts.json -copy-artifacts`
 
-6. Build and package for desired target platforms (**TODO: Windows example**)
-	- https://www.audiokinetic.com/en/library/edge/?source=SDK&id=effectplugin_tools_building.html
-	- Make sure to copy library files to their appropriate destinations as well
+6. Package for desired target platforms. Below is a Windows example (you can substitute 2022.1.5.8242 for your version of Wwise):
+```sh
+# Package
+python "C:\Program Files (x86)\Audiokinetic\Wwise 2022.1.5.8242\Scripts\Build\Plugins\wp.py" package Common --version=2022.1.5.8242
+python "C:\Program Files (x86)\Audiokinetic\Wwise 2022.1.5.8242\Scripts\Build\Plugins\wp.py" package Authoring --version=2022.1.5.8242 --additional-artifacts-file=additional_artifacts.json
+python "C:\Program Files (x86)\Audiokinetic\Wwise 2022.1.5.8242\Scripts\Build\Plugins\wp.py" package Windows_vc160 --version=2022.1.5.8242 --additional-artifacts-file=additional_artifacts.json
+
+# Bundle
+python "C:\Program Files (x86)\Audiokinetic\Wwise 2022.1.5.8242\Scripts\Build\Plugins\wp.py" generate-bundle --version=2022.1.5.8242
+```
+
+7. Install from the Audiokinetic Launcher: https://www.audiokinetic.com/library/wwise_launcher/?source=InstallGuide&id=plugins
 
 ## Licensing
 
