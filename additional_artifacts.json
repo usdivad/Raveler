@@ -12,8 +12,7 @@
             "Authoring/Data/Factory Assets/RaveWwise": ["FactoryAssets/*"],
 
             // RAVE library dependencies
-            "Authoring/x64/Release/bin": ["Libraries/torch/libtorch/lib/*"],
-            "Authoring/x64/Release/bin": ["Libraries/onnx/onnxruntime/lib/*"]
+            "Authoring/x64/Release/bin": ["Libraries/torch/libtorch/lib/*", "Libraries/onnx/onnxruntime/lib/*"]
         }
     ],
 
@@ -32,8 +31,7 @@
     "Windows_vc160": [
         {
             // RAVE library dependencies
-            "SDK/x64_vc160/Release/bin": ["Libraries/torch/libtorch/lib/*"],
-            "SDK/x64_vc160/Release/bin": ["Libraries/onnx/onnxruntime/lib/*"]
+            "SDK/x64_vc160/Release/bin": ["Libraries/torch/libtorch/lib/*", "Libraries/onnx/onnxruntime/lib/*"]
         }
     ]
 }
