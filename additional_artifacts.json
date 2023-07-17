@@ -9,9 +9,13 @@
             // of a Wwise installation
             "Authoring/Help/RaveWwise": ["Help/*"],
             // Similarly for the files in the FactoryAssets folder
-            "Authoring/Data/Factory Assets/RaveWwise": ["FactoryAssets/*"]
+            "Authoring/Data/Factory Assets/RaveWwise": ["FactoryAssets/*"],
+
+            // RAVE library dependencies
+            "Authoring/x64/Release/bin": ["Libraries/torch/libtorch/lib/*"],
+            "Authoring/x64/Release/bin": ["Libraries/onnx/onnxruntime/lib/*"]
         }
-    ]
+    ],
 
     // List of additional files to package for the <DeploymentPlatform> platform
     // "<DeploymentPlatform>": [
@@ -24,4 +28,12 @@
     //     ...
     // ],
     // ...
+
+    "Windows_vc160": [
+        {
+            // RAVE library dependencies
+            "SDK/x64_vc160/Release/bin": ["Libraries/torch/libtorch/lib/*"],
+            "SDK/x64_vc160/Release/bin": ["Libraries/onnx/onnxruntime/lib/*"]
+        }
+    ]
 }
